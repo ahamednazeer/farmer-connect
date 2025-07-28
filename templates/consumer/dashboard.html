@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Consumer Dashboard - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4 animate-on-scroll">
+        <div class="col">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="fw-bold mb-3 display-6">Welcome back, {{ session.full_name }}! 🛒</h2>
+                            <p class="mb-3 lead">Discover fresh produce from local farmers and support your community</p>
+                            <div class="d-flex gap-3">
+                                <a href="{{ url_for('products') }}" class="btn btn-light">
+                                    <i class="fas fa-shopping-basket me-2"></i>Browse Products
+                                </a>
+                                <a href="{{ url_for('products') }}?sort_by=name" class="btn btn-outline-light">
+                                    <i class="fas fa-users me-2"></i>Find Farmers
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="position-relative d-inline-block">
+                                <div class="bg-white rounded-circle p-4 shadow-lg d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                    <i class="fas fa-user fa-3x text-primary"></i>
+                                </div>
+                                <div class="position-absolute bottom-0 end-0">
+                                    <span class="badge bg-success px-3 py-2">
+                                        <i class="fas fa-check-circle me-1"></i> Verified
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="dashboard-metric">
+                <div class="metric-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="metric-value">{{ stats.total_orders }}</div>
+                <div class="metric-label">Total Orders</div>
+                <small class="opacity-75">{{ stats.pending_orders }} Pending</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="dashboard-metric" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="metric-icon">
+                    <i class="fas fa-rupee-sign"></i>
+                </div>
+                <div class="metric-value">{{ stats.total_spent|rupee }}</div>
+                <div class="metric-label">Total Spent</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="dashboard-metric" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="metric-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="metric-value">{{ stats.cart_items }}</div>
+                <div class="metric-label">Items in Cart</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="dashboard-metric" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="metric-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="metric-value">0</div>
+                <div class="metric-label">Wishlist Items</div>
+                <small class="opacity-75">Coming Soon</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Recent Orders</h5>
+                    <a href="{{ url_for('consumer.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                    <div class="list-group list-group-flush">
+                        {% for order in recent_orders %}
+                        <div class="list-group-item px-0">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <h6 class="mb-1">Order #{{ order.order_number }}</h6>
+                                    <small class="text-muted">{{ order.created_at }}</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="badge bg-{{ 'success' if order.status == 'delivered' else 'primary' if order.status == 'confirmed' else 'warning' }}">
+                                        <span class="status-indicator status-{{ order.status }}"></span>
+                                        {{ order.status.title() }}
+                                    </span>
+                                </div>
+                                <div class="col-md-2">
+                                    <h6 class="text-success mb-0">{{ order.total_amount|rupee }}</h6>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <a href="{{ url_for('consumer.order_detail', order_id=order.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    {% if order.status == 'delivered' %}
+                                    <button class="btn btn-sm btn-outline-warning ms-1" onclick="reorderItems({{ order.id }})">
+                                        <i class="fas fa-redo"></i> Reorder
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-shopping-bag fa-3x mb-3"></i>
+                        <h5>No Orders Yet</h5>
+                        <p>Start shopping for fresh produce from local farmers!</p>
+                        <a href="{{ url_for('products') }}" class="btn btn-primary">
+                            <i class="fas fa-shopping-basket"></i> Browse Products
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('products') }}" class="btn btn-primary">
+                            <i class="fas fa-shopping-basket"></i> Browse Products
+                        </a>
+                        
+                        {% if stats.cart_items > 0 %}
+                        <a href="{{ url_for('consumer.cart') }}" class="btn btn-success">
+                            <i class="fas fa-shopping-cart"></i> View Cart ({{ stats.cart_items }})
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('consumer.orders') }}" class="btn btn-info">
+                            <i class="fas fa-list"></i> My Orders
+                        </a>
+                        
+                        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-user-edit"></i> Edit Profile
+                        </a>
+                        
+                        {% if stats.pending_orders > 0 %}
+                        <a href="{{ url_for('consumer.orders', status='pending') }}" class="btn btn-warning">
+                            <i class="fas fa-clock"></i> Pending Orders ({{ stats.pending_orders }})
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Status Guide -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Order Status Guide</h5>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="status-indicator status-pending me-2"></span>
+                            <strong>Pending:</strong> Order placed, waiting for confirmation
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="status-indicator status-confirmed me-2"></span>
+                            <strong>Confirmed:</strong> Order accepted by farmer
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="status-indicator status-processing me-2"></span>
+                            <strong>Processing:</strong> Order being prepared
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="status-indicator status-shipped me-2"></span>
+                            <strong>Shipped:</strong> Order out for delivery
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="status-indicator status-delivered me-2"></span>
+                            <strong>Delivered:</strong> Order completed
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommended Products -->
+        {% if recommended_products %}
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-thumbs-up"></i> Recommended for You</h5>
+                    <a href="{{ url_for('products') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        {% for product in recommended_products %}
+                        <div class="col-md-4 col-lg-2">
+                            <div class="card product-card border-0 shadow-sm h-100">
+                                <!-- Product Image -->
+                                {% if product.image %}
+                                <img src="{{ url_for('static', filename=product.image) }}" 
+                                     class="card-img-top" style="height: 150px; object-fit: cover;" alt="{{ product.name }}">
+                                {% else %}
+                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
+                                     style="height: 150px;">
+                                    <i class="fas fa-image fa-2x text-muted"></i>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Product Info -->
+                                <div class="card-body p-3">
+                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <p class="text-muted small mb-2">
+                                        <i class="fas fa-store"></i> {{ product.farm_name }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="text-primary mb-0">{{ product.price|rupee }}/{{ product.unit }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="card-footer bg-white border-0 p-3">
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                                           class="btn btn-outline-primary btn-sm flex-grow-1">
+                                            View
+                                        </a>
+                                        <button class="btn btn-primary btn-sm" onclick="addToCart({{ product.id }})">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Shopping Tips -->
+        {% if stats.total_orders == 0 %}
+        <div class="col-12">
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Shopping Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-search fa-3x text-success mb-3"></i>
+                                <h6>Browse by Location</h6>
+                                <p class="text-muted small">Find farmers near you for fresher produce and faster delivery.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-leaf fa-3x text-success mb-3"></i>
+                                <h6>Look for Organic</h6>
+                                <p class="text-muted small">Check product badges for organic certification and farming methods.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-clock fa-3x text-success mb-3"></i>
+                                <h6>Order in Advance</h6>
+                                <p class="text-muted small">Plan your orders 1-2 days ahead for the freshest seasonal produce.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('products') }}" class="btn btn-success btn-lg">
+                            <i class="fas fa-shopping-basket"></i> Start Shopping Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function reorderItems(orderId) {
+        fetch(`/consumer/orders/${orderId}/reorder`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message);
+                // Update cart count if necessary
+                setTimeout(() => {
+                    window.location.href = '/consumer/cart';
+                }, 1500);
+            } else {
+                showToast('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('error', 'Failed to reorder items');
+        });
+    }
+    
+    // Auto-refresh order status every 30 seconds
+    setInterval(function() {
+        // Only refresh if there are pending orders
+        {% if stats.pending_orders > 0 %}
+        fetch('/consumer/api/order-status-check')
+            .then(response => response.json())
+            .then(data => {
+                if (data.updated) {
+                    // Show notification if order status changed
+                    showToast('info', 'Order status updated! Refresh to see changes.');
+                }
+            })
+            .catch(error => console.log('Status check failed'));
+        {% endif %}
+    }, 30000);
+</script>
+{% endblock %}

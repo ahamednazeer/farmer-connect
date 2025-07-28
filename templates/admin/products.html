@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block title %}Product Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">Product Management</h2>
+            <p class="text-muted">Manage and approve product listings</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <!-- Status Filter -->
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select" onchange="this.form.submit()">
+                                <option value="all" {{ 'selected' if current_status == 'all' else '' }}>All Products</option>
+                                <option value="approved" {{ 'selected' if current_status == 'approved' else '' }}>Approved</option>
+                                <option value="pending" {{ 'selected' if current_status == 'pending' else '' }}>Pending Approval</option>
+                                <option value="rejected" {{ 'selected' if current_status == 'rejected' else '' }}>Rejected</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Category Filter -->
+                        <div class="col-md-3">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category.category }}" {{ 'selected' if current_category == category.category else '' }}>
+                                    {{ category.category }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Search -->
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Search by product name or farmer..." 
+                                       value="{{ current_search or '' }}">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Clear Filters -->
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if products %}
+    <!-- Products Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Farmer</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th>Added</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if product.image %}
+                                        <img src="{{ url_for('static', filename=product.image) }}" 
+                                             class="rounded admin-image-small" width="50" height="50">
+                                        {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                             style="width: 50px; height: 50px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ product.name }}</h6>
+                                        {% if product.description %}
+                                        <small class="text-muted">
+                                            {{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ product.farmer_name }}</strong><br>
+                                    <small class="text-muted">{{ product.farm_name or 'No farm name' }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ product.category }}</span>
+                            </td>
+                            <td>
+                                <strong class="text-success">{{ product.price|rupee }}/{{ product.unit }}</strong>
+                            </td>
+                            <td>
+                                <span class="{% if product.quantity <= 0 %}text-danger{% elif product.quantity <= 5 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ product.quantity }} {{ product.unit }}
+                                    {% if product.quantity <= 0 %}
+                                    <br><small class="text-danger">Out of Stock</small>
+                                    {% elif product.quantity <= 5 %}
+                                    <br><small class="text-warning">Low Stock</small>
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if product.is_approved %}
+                                <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ product.created_at }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <!-- View Product -->
+                                    <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                                       class="btn btn-sm btn-outline-primary" target="_blank"
+                                       title="View Product">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    {% if not product.is_approved %}
+                                    <!-- Approve Product -->
+                                    <button class="btn btn-sm btn-outline-success" 
+                                            onclick="approveProduct({{ product.id }})"
+                                            title="Approve Product">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    
+                                    <!-- Reject Product -->
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="rejectProduct({{ product.id }})"
+                                            title="Reject Product">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    {% else %}
+                                    <!-- Revoke Approval -->
+                                    <button class="btn btn-sm btn-outline-warning" 
+                                            onclick="revokeProduct({{ product.id }})"
+                                            title="Revoke Approval">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <!-- More Actions Dropdown -->
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="viewFarmer({{ product.farmer_id }})">
+                                                    <i class="fas fa-user text-info"></i> View Farmer
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="deleteProduct({{ product.id }})">
+                                                    <i class="fas fa-trash"></i> Delete Product
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-basket fa-5x text-muted mb-4"></i>
+                <h3 class="fw-bold mb-3">No Products Found</h3>
+                {% if current_search or current_category or current_status != 'all' %}
+                <p class="text-muted mb-4">No products match your current filters. Try adjusting your search criteria.</p>
+                <a href="{{ url_for('admin.products') }}" class="btn btn-primary">
+                    <i class="fas fa-refresh"></i> Clear All Filters
+                </a>
+                {% else %}
+                <p class="text-muted mb-4">No products have been added to the platform yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Confirmation Modals -->
+<!-- Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Approve Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve this product? It will become visible to all customers.</p>
+                <input type="hidden" id="approveProductId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmApprove()">
+                    <i class="fas fa-check"></i> Approve Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reject this product? The farmer will be notified.</p>
+                <div class="mb-3">
+                    <label for="rejectReason" class="form-label">Reason for rejection (optional)</label>
+                    <textarea class="form-control" id="rejectReason" rows="3" 
+                              placeholder="Explain why this product is being rejected..."></textarea>
+                </div>
+                <input type="hidden" id="rejectProductId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">
+                    <i class="fas fa-times"></i> Reject Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger">⚠️ <strong>Warning:</strong> This action cannot be undone!</p>
+                <p>Are you sure you want to permanently delete this product? All associated data will be lost.</p>
+                <input type="hidden" id="deleteProductId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> Delete Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function approveProduct(productId) {
+    document.getElementById('approveProductId').value = productId;
+    new bootstrap.Modal(document.getElementById('approveModal')).show();
+}
+
+function rejectProduct(productId) {
+    document.getElementById('rejectProductId').value = productId;
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+
+function revokeProduct(productId) {
+    if (confirm('Are you sure you want to revoke approval for this product?')) {
+        // Send POST request to revoke approval
+        fetch(`/admin/products/revoke/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to revoke product approval'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while revoking product approval');
+        });
+    }
+}
+
+function deleteProduct(productId) {
+    document.getElementById('deleteProductId').value = productId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function viewFarmer(farmerId) {
+    window.open(`/admin/farmers/${farmerId}`, '_blank');
+}
+
+function confirmApprove() {
+    const productId = document.getElementById('approveProductId').value;
+    
+    fetch(`/admin/products/approve/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to approve product'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while approving the product');
+    });
+    
+    bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+}
+
+function confirmReject() {
+    const productId = document.getElementById('rejectProductId').value;
+    const reason = document.getElementById('rejectReason').value;
+    
+    fetch(`/admin/products/reject/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to reject product'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while rejecting the product');
+    });
+    
+    bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+}
+
+function confirmDelete() {
+    const productId = document.getElementById('deleteProductId').value;
+    
+    fetch(`/admin/products/delete/${productId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to delete product'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the product');
+    });
+    
+    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+}
+</script>
+{% endblock %}

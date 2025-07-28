@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-receipt"></i> Order #{{ order.id }}</h4>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.orders') }}" class="btn btn-light btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Orders
+                            </a>
+                            <button class="btn btn-light btn-sm" onclick="printOrder()">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Order Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="text-primary">Order Status</h6>
+                                    {% if order.status == 'pending' %}
+                                    <span class="badge bg-warning fs-6">Pending</span>
+                                    {% elif order.status == 'confirmed' %}
+                                    <span class="badge bg-info fs-6">Confirmed</span>
+                                    {% elif order.status == 'shipped' %}
+                                    <span class="badge bg-primary fs-6">Shipped</span>
+                                    {% elif order.status == 'delivered' %}
+                                    <span class="badge bg-success fs-6">Delivered</span>
+                                    {% elif order.status == 'cancelled' %}
+                                    <span class="badge bg-danger fs-6">Cancelled</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h6 class="text-success">Payment Status</h6>
+                                    {% if order.payment_status == 'pending' %}
+                                    <span class="badge bg-warning fs-6">Pending</span>
+                                    {% elif order.payment_status == 'paid' %}
+                                    <span class="badge bg-success fs-6">Paid</span>
+                                    {% elif order.payment_status == 'failed' %}
+                                    <span class="badge bg-danger fs-6">Failed</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <h6 class="text-info">Order Total</h6>
+                                    <h4 class="text-dark">{{ order.total_amount|rupee }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-secondary">
+                                <div class="card-body text-center">
+                                    <h6 class="text-secondary">Order Date</h6>
+                                    <p class="mb-0">{{ order.created_at|date_format }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer & Delivery Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-user"></i> Customer Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        {% if consumer.profile_image %}
+                                        <img src="{{ url_for('static', filename=consumer.profile_image) }}" 
+                                             class="rounded-circle me-3" width="60" height="60" alt="Profile">
+                                        {% else %}
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                             style="width: 60px; height: 60px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-0">{{ consumer.full_name }}</h5>
+                                            <p class="text-muted mb-0">{{ consumer.email }}</p>
+                                            {% if consumer.phone %}
+                                            <p class="text-muted mb-0">{{ consumer.phone }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="viewCustomerDetails({{ consumer.id }})">
+                                        View Customer Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Delivery Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h6>Delivery Address:</h6>
+                                    <p class="mb-2">{{ order.delivery_address }}</p>
+                                    
+                                    {% if order.delivery_date %}
+                                    <h6>Expected Delivery:</h6>
+                                    <p class="mb-2">{{ order.delivery_date|date_format }}</p>
+                                    {% endif %}
+                                    
+                                    {% if order.tracking_number %}
+                                    <h6>Tracking Number:</h6>
+                                    <p class="mb-0"><code>{{ order.tracking_number }}</code></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-shopping-cart"></i> Order Items</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Farmer</th>
+                                            <th>Price</th>
+                                            <th>Quantity</th>
+                                            <th>Subtotal</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in order_items %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if item.product_image %}
+                                                    <img src="{{ url_for('static', filename='uploads/products/' + item.product_image) }}" 
+                                                         class="rounded me-3" width="60" height="60" alt="Product">
+                                                    {% else %}
+                                                    <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" 
+                                                         style="width: 60px; height: 60px;">
+                                                        <i class="fas fa-image text-muted"></i>
+                                                    </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <h6 class="mb-0">{{ item.product_name }}</h6>
+                                                        <small class="text-muted">{{ item.category }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>{{ item.farmer_name }}</strong>
+                                                <br><small class="text-muted">{{ item.farm_name }}</small>
+                                            </td>
+                                            <td>{{ item.price|rupee }}/{{ item.unit }}</td>
+                                            <td>{{ item.quantity }} {{ item.unit }}</td>
+                                            <td><strong>{{ item.subtotal|rupee }}</strong></td>
+                                            <td>
+                                                {% if item.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                                {% elif item.status == 'confirmed' %}
+                                                <span class="badge bg-info">Confirmed</span>
+                                                {% elif item.status == 'shipped' %}
+                                                <span class="badge bg-primary">Shipped</span>
+                                                {% elif item.status == 'delivered' %}
+                                                <span class="badge bg-success">Delivered</span>
+                                                {% elif item.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <!-- Order Timeline -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-history"></i> Order Timeline</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="timeline">
+                                        <div class="timeline-item completed">
+                                            <div class="timeline-marker bg-success"></div>
+                                            <div class="timeline-content">
+                                                <h6>Order Placed</h6>
+                                                <p class="text-muted">{{ order.created_at|date_format }}</p>
+                                            </div>
+                                        </div>
+                                        {% if order.status in ['confirmed', 'shipped', 'delivered'] %}
+                                        <div class="timeline-item completed">
+                                            <div class="timeline-marker bg-success"></div>
+                                            <div class="timeline-content">
+                                                <h6>Order Confirmed</h6>
+                                                <p class="text-muted">{{ order.confirmed_at|date_format if order.confirmed_at else 'Processing' }}</p>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        {% if order.status in ['shipped', 'delivered'] %}
+                                        <div class="timeline-item completed">
+                                            <div class="timeline-marker bg-success"></div>
+                                            <div class="timeline-content">
+                                                <h6>Order Shipped</h6>
+                                                <p class="text-muted">{{ order.shipped_at|date_format if order.shipped_at else 'In transit' }}</p>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        {% if order.status == 'delivered' %}
+                                        <div class="timeline-item completed">
+                                            <div class="timeline-marker bg-success"></div>
+                                            <div class="timeline-content">
+                                                <h6>Order Delivered</h6>
+                                                <p class="text-muted">{{ order.delivered_at|date_format if order.delivered_at else 'Delivered successfully' }}</p>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <!-- Order Summary -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-calculator"></i> Order Summary</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span>{{ order.subtotal|rupee }}</span>
+                                    </div>
+                                    {% if order.delivery_charges %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Delivery Charges:</span>
+                                        <span>{{ order.delivery_charges|rupee }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if order.tax_amount %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Tax:</span>
+                                        <span>{{ order.tax_amount|rupee }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if order.discount_amount %}
+                                    <div class="d-flex justify-content-between mb-2 text-success">
+                                        <span>Discount:</span>
+                                        <span>-{{ order.discount_amount|rupee }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <hr>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <strong>Total:</strong>
+                                        <strong>{{ order.total_amount|rupee }}</strong>
+                                    </div>
+                                    
+                                    <!-- Admin Actions -->
+                                    {% if order.status != 'cancelled' and order.status != 'delivered' %}
+                                    <div class="d-grid gap-2">
+                                        {% if order.status == 'pending' %}
+                                        <button class="btn btn-success btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'confirmed')">
+                                            Confirm Order
+                                        </button>
+                                        {% elif order.status == 'confirmed' %}
+                                        <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'shipped')">
+                                            Mark as Shipped
+                                        </button>
+                                        {% elif order.status == 'shipped' %}
+                                        <button class="btn btn-success btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'delivered')">
+                                            Mark as Delivered
+                                        </button>
+                                        {% endif %}
+                                        <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'cancelled')">
+                                            Cancel Order
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 0;
+    bottom: -30px;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -26px;
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #6c757d;
+}
+
+.timeline-item.completed .timeline-marker {
+    background: #28a745;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+}
+
+.timeline-content p {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+function updateOrderStatus(orderId, status) {
+    const statusText = {
+        'confirmed': 'confirm',
+        'shipped': 'mark as shipped',
+        'delivered': 'mark as delivered',
+        'cancelled': 'cancel'
+    };
+    
+    if (confirm(`Are you sure you want to ${statusText[status]} this order?`)) {
+        fetch(`{{ url_for('admin.update_order_status') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                order_id: orderId, 
+                status: status 
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to update order status');
+            }
+        });
+    }
+}
+
+function viewCustomerDetails(customerId) {
+    window.location.href = `{{ url_for('admin.consumers') }}?search=${customerId}`;
+}
+
+function printOrder() {
+    window.print();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Dashboard - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="farmer-profile mb-4 animate-on-scroll">
+        <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="fw-bold mb-3 display-6">Welcome back, {{ session.full_name }}! 🌾</h2>
+                        <div class="d-flex flex-wrap gap-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-store me-2"></i>
+                                <span>{{ farmer.farm_name or 'Your Farm' }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                <span>{{ farmer.location }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar me-2"></i>
+                                <span>Member since {{ farmer.created_at|date_format('%B %Y') if farmer.created_at else 'Recently' }}</span>
+                            </div>
+                        </div>
+                        {% if not farmer.is_approved %}
+                        <div class="alert alert-warning mt-3 border-0" style="background: rgba(255, 193, 7, 0.2); color: #856404;">
+                            <i class="fas fa-clock me-2"></i> Your account is pending approval. You'll be able to add products once approved.
+                        </div>
+                        {% else %}
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i> Verified Farmer
+                            </span>
+                            <span class="badge bg-info px-3 py-2">
+                                <i class="fas fa-star me-1"></i> Premium Member
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="position-relative d-inline-block">
+                            {% if farmer.profile_image %}
+                            <img src="{{ url_for('static', filename=farmer.profile_image) }}" 
+                                 class="profile-avatar border border-3 border-white shadow-lg" alt="Profile">
+                            {% else %}
+                            <div class="profile-avatar bg-white d-inline-flex align-items-center justify-content-center border border-3 border-white shadow-lg">
+                                <i class="fas fa-user fa-2x text-primary"></i>
+                            </div>
+                            {% endif %}
+                            <div class="position-absolute bottom-0 end-0">
+                                <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="tooltip" title="Edit Profile">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 animate-on-scroll">
+            <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                <div class="card-body text-white position-relative overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="metric-icon">
+                            <i class="fas fa-shopping-basket fa-2x"></i>
+                        </div>
+                        <div class="text-end">
+                            <div class="metric-value counter" data-target="{{ stats.total_products }}" data-duration="2000">0</div>
+                            <div class="metric-label">Total Products</div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">{{ stats.active_products }} Active</small>
+                        <div class="progress" style="width: 60px; height: 4px;">
+                            <div class="progress-bar bg-white" style="width: {{ (stats.active_products / stats.total_products * 100) if stats.total_products > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="position-absolute top-0 end-0 opacity-10">
+                        <i class="fas fa-shopping-basket" style="font-size: 4rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 animate-on-scroll">
+            <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                <div class="card-body text-white position-relative overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="metric-icon">
+                            <i class="fas fa-shopping-bag fa-2x"></i>
+                        </div>
+                        <div class="text-end">
+                            <div class="metric-value counter" data-target="{{ stats.total_orders }}" data-duration="2000">0</div>
+                            <div class="metric-label">Total Orders</div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">{{ stats.pending_orders }} Pending</small>
+                        <span class="badge bg-warning">
+                            <i class="fas fa-clock"></i> {{ stats.pending_orders }}
+                        </span>
+                    </div>
+                    <div class="position-absolute top-0 end-0 opacity-10">
+                        <i class="fas fa-shopping-bag" style="font-size: 4rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 animate-on-scroll">
+            <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                <div class="card-body text-white position-relative overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="metric-icon">
+                            <i class="fas fa-rupee-sign fa-2x"></i>
+                        </div>
+                        <div class="text-end">
+                            <div class="metric-value">{{ stats.total_earnings|rupee }}</div>
+                            <div class="metric-label">Total Earnings</div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">{{ stats.month_earnings|rupee }} This Month</small>
+                        <span class="badge bg-success">
+                            <i class="fas fa-arrow-up"></i> +12%
+                        </span>
+                    </div>
+                    <div class="position-absolute top-0 end-0 opacity-10">
+                        <i class="fas fa-rupee-sign" style="font-size: 4rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 animate-on-scroll">
+            <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                <div class="card-body text-white position-relative overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="metric-icon">
+                            <i class="fas fa-star fa-2x"></i>
+                        </div>
+                        <div class="text-end">
+                            <div class="metric-value">{{ "%.1f"|format(stats.avg_rating) if stats.avg_rating else 'N/A' }}</div>
+                            <div class="metric-label">Avg Rating</div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="opacity-75">{{ stats.total_reviews }} Reviews</small>
+                        <div class="d-flex">
+                            {% for i in range(5) %}
+                                {% if stats.avg_rating and i < stats.avg_rating %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="position-absolute top-0 end-0 opacity-10">
+                        <i class="fas fa-star" style="font-size: 4rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Recent Orders</h5>
+                    <a href="{{ url_for('farmer.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                    <div class="list-group list-group-flush">
+                        {% for order in recent_orders %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">Order #{{ order.order_number }}</h6>
+                                    <p class="mb-1 text-muted">{{ order.consumer_name }}</p>
+                                    <small class="text-muted">{{ order.created_at|date_format }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-success">{{ order.farmer_total|rupee }}</h6>
+                                    <span class="badge bg-{{ 'success' if order.status == 'delivered' else 'primary' }}">
+                                        {{ order.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>No orders yet</p>
+                        {% if farmer.is_approved %}
+                        <a href="{{ url_for('farmer.add_product') }}" class="btn btn-primary btn-sm">
+                            Add Your First Product
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Selling Products -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top Selling Products</h5>
+                    <a href="{{ url_for('farmer.products') }}" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if top_products %}
+                    <div class="list-group list-group-flush">
+                        {% for product in top_products %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    {% if product.image %}
+                                    <img src="{{ url_for('static', filename=product.image) }}" 
+                                         class="rounded" width="40" height="40" alt="{{ product.name }}">
+                                    {% else %}
+                                    <div class="rounded bg-light d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="ms-3">
+                                        <h6 class="mb-0">{{ product.name }}</h6>
+                                        <small class="text-muted">{{ product.price|rupee }}/{{ product.unit }}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">{{ product.total_sold or 0 }} sold</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                        <p>No sales data yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inventory Status -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-boxes"></i> Inventory Status</h5>
+                </div>
+                <div class="card-body">
+                    {% if inventory_status %}
+                    <div class="list-group list-group-flush">
+                        {% for item in inventory_status %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ item.name }}</h6>
+                                    <small class="text-muted">{{ item.category }}</small>
+                                </div>
+                                <div>
+                                    {% if item.quantity == 0 %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                    {% elif item.quantity < 10 %}
+                                    <span class="badge bg-warning">{{ item.quantity }} {{ item.unit }} left</span>
+                                    {% else %}
+                                    <span class="badge bg-success">{{ item.quantity }} {{ item.unit }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-box-open fa-2x mb-2"></i>
+                        <p>No products in inventory</p>
+                        {% if farmer.is_approved %}
+                        <a href="{{ url_for('farmer.add_product') }}" class="btn btn-primary btn-sm">
+                            Add Products
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Earnings Chart -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Monthly Earnings</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="earningsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    {% if farmer.is_approved %}
+    <div class="row mt-5">
+        <div class="col">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('farmer.add_product') }}" class="btn btn-success w-100">
+                                <i class="fas fa-plus"></i> Add New Product
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('farmer.orders', status='pending') }}" class="btn btn-warning w-100">
+                                <i class="fas fa-clock"></i> Pending Orders
+                                {% if stats.pending_orders > 0 %}
+                                <span class="badge bg-light text-dark ms-2">{{ stats.pending_orders }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('farmer.products', status='out_of_stock') }}" class="btn btn-danger w-100">
+                                <i class="fas fa-exclamation-triangle"></i> Out of Stock
+                                {% if stats.out_of_stock > 0 %}
+                                <span class="badge bg-light text-dark ms-2">{{ stats.out_of_stock }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="#" class="btn btn-info w-100" onclick="alert('Analytics feature coming soon!')">
+                                <i class="fas fa-chart-line"></i> View Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Tips for New Farmers -->
+    {% if farmer.is_approved and stats.total_products == 0 %}
+    <div class="row mt-5">
+        <div class="col">
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Getting Started Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-camera fa-3x text-success mb-3"></i>
+                                <h6>Add Photos</h6>
+                                <p class="text-muted small">Take clear, bright photos of your produce to attract more customers.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-pen fa-3x text-success mb-3"></i>
+                                <h6>Write Descriptions</h6>
+                                <p class="text-muted small">Include details about freshness, farming methods, and quality.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-tags fa-3x text-success mb-3"></i>
+                                <h6>Fair Pricing</h6>
+                                <p class="text-muted small">Research market prices and set competitive rates for your products.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('farmer.add_product') }}" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus"></i> Add Your First Product
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Monthly Earnings Chart
+    const ctx = document.getElementById('earningsChart').getContext('2d');
+    const earningsData = {{ monthly_earnings|tojson }};
+    
+    const labels = earningsData.map(item => item.month);
+    const data = earningsData.map(item => item.earnings);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Earnings (₹)',
+                data: data,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

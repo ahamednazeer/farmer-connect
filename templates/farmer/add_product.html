@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Add Product - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">Add New Product</h2>
+            <p class="text-muted">List your fresh produce to connect with consumers</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('farmer.products') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Products
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Product Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <!-- Product Name -->
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       placeholder="e.g., Fresh Tomatoes" required>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.name }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-4">
+                                <label for="price" class="form-label">Price per Unit *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           step="0.01" min="0.01" placeholder="0.00" required>
+                                </div>
+                            </div>
+
+                            <!-- Unit -->
+                            <div class="col-md-4">
+                                <label for="unit" class="form-label">Unit *</label>
+                                <select class="form-select" id="unit" name="unit" required>
+                                    <option value="">Select Unit</option>
+                                    <option value="kg">Kilogram (kg)</option>
+                                    <option value="gram">Gram (g)</option>
+                                    <option value="piece">Piece</option>
+                                    <option value="dozen">Dozen</option>
+                                    <option value="liter">Liter (L)</option>
+                                    <option value="bunch">Bunch</option>
+                                    <option value="basket">Basket</option>
+                                </select>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label">Available Quantity *</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       min="0" placeholder="0" required>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"
+                                          placeholder="Describe your product, farming methods, freshness details, etc."></textarea>
+                                <div class="form-text">Help customers understand the quality and uniqueness of your product</div>
+                            </div>
+
+                            <!-- Product Image -->
+                            <div class="col-12">
+                                <label for="image" class="form-label">Product Image</label>
+                                <input type="file" class="form-control" id="image" name="image" 
+                                       accept="image/jpeg,image/jpg,image/png">
+                                <div class="form-text">Upload a clear, bright image of your product (JPG, PNG - Max 5MB)</div>
+                                <div id="imagePreview" class="mt-3"></div>
+                            </div>
+
+                            <!-- Dates Section -->
+                            <div class="col-12">
+                                <hr class="my-3">
+                                <h6 class="text-muted">Date Information (Optional)</h6>
+                            </div>
+
+                            <!-- Harvest Date -->
+                            <div class="col-md-6">
+                                <label for="harvest_date" class="form-label">Harvest Date</label>
+                                <input type="date" class="form-control" id="harvest_date" name="harvest_date">
+                                <div class="form-text">When was this product harvested?</div>
+                            </div>
+
+                            <!-- Expiry Date -->
+                            <div class="col-md-6">
+                                <label for="expiry_date" class="form-label">Best Before Date</label>
+                                <input type="date" class="form-control" id="expiry_date" name="expiry_date">
+                                <div class="form-text">Until when is this product fresh?</div>
+                            </div>
+
+                            <!-- Special Properties -->
+                            <div class="col-12">
+                                <hr class="my-3">
+                                <h6 class="text-muted">Product Properties</h6>
+                            </div>
+
+                            <!-- Organic -->
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="organic" name="organic">
+                                    <label class="form-check-label" for="organic">
+                                        <i class="fas fa-leaf text-success"></i> This is an organic product
+                                    </label>
+                                    <div class="form-text">Check this if your product is organically grown without chemicals</div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Buttons -->
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fas fa-plus-circle"></i> Add Product
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <a href="{{ url_for('farmer.products') }}" class="btn btn-outline-secondary w-100">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Information Card -->
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Important Information</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>All products are subject to admin approval before going live</li>
+                        <li>Ensure accurate pricing and availability to maintain customer trust</li>
+                        <li>High-quality images significantly increase customer interest</li>
+                        <li>Detailed descriptions help customers make informed decisions</li>
+                        <li>Update your inventory regularly to avoid out-of-stock situations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Script -->
+<script>
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    
+    if (file) {
+        // Validate file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            this.value = '';
+            preview.innerHTML = '';
+            return;
+        }
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPG, PNG)');
+            this.value = '';
+            preview.innerHTML = '';
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <div class="image-container" style="height: 200px; max-width: 300px; margin: 0 auto;">
+                    <img src="${e.target.result}" class="image-transparent" alt="Preview">
+                </div>
+                <p class="text-center text-muted mt-2">Image Preview</p>
+            `;
+        }
+        reader.readAsDataURL(file);
+    } else {
+        preview.innerHTML = '';
+    }
+});
+
+// Set minimum date for harvest and expiry dates
+const today = new Date().toISOString().split('T')[0];
+const harvestDate = document.getElementById('harvest_date');
+const expiryDate = document.getElementById('expiry_date');
+
+harvestDate.max = today; // Can't harvest in the future
+
+// Update expiry date minimum when harvest date changes
+harvestDate.addEventListener('change', function() {
+    if (this.value) {
+        expiryDate.min = this.value;
+        if (expiryDate.value && expiryDate.value <= this.value) {
+            expiryDate.value = '';
+        }
+    }
+});
+</script>
+{% endblock %}

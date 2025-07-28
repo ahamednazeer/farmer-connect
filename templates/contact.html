@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - Farmer Connect{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-4">Contact Us</h1>
+                <p class="lead">Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Contact Form -->
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-envelope"></i> Send us a Message</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="contactForm" onsubmit="submitContactForm(event)">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label">Phone Number (Optional)</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="subject" class="form-label">Subject</label>
+                                    <select class="form-select" id="subject" name="subject" required>
+                                        <option value="">Select a subject</option>
+                                        <option value="general">General Inquiry</option>
+                                        <option value="farmer_support">Farmer Support</option>
+                                        <option value="consumer_support">Consumer Support</option>
+                                        <option value="technical">Technical Issue</option>
+                                        <option value="partnership">Partnership</option>
+                                        <option value="feedback">Feedback</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="5" 
+                                              placeholder="Please describe your question or concern..." required></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Send Message
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h3 class="mb-0"><i class="fas fa-info-circle"></i> Contact Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5><i class="fas fa-map-marker-alt text-primary"></i> Address</h5>
+                            <p class="text-muted ms-4">
+                                Farmer Connect Headquarters<br>
+                                Main Road, Ulundurpettai<br>
+                                Tamil Nadu 606107<br>
+                                India
+                            </p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5><i class="fas fa-phone text-primary"></i> Phone</h5>
+                            <p class="text-muted ms-4">
+                                <strong>Customer Support:</strong><br>
+                                +91-9999999999<br>
+                                <strong>Business Inquiries:</strong><br>
+                                +91-8888888888
+                            </p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5><i class="fas fa-envelope text-primary"></i> Email</h5>
+                            <p class="text-muted ms-4">
+                                <strong>General:</strong> info@farmerconnect.com<br>
+                                <strong>Support:</strong> support@farmerconnect.com<br>
+                                <strong>Business:</strong> business@farmerconnect.com
+                            </p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5><i class="fas fa-clock text-primary"></i> Business Hours</h5>
+                            <p class="text-muted ms-4">
+                                <strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM<br>
+                                <strong>Saturday:</strong> 10:00 AM - 4:00 PM<br>
+                                <strong>Sunday:</strong> Closed
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h5><i class="fas fa-share-alt text-primary"></i> Follow Us</h5>
+                            <div class="d-flex gap-3 ms-4">
+                                <a href="#" class="text-primary"><i class="fab fa-facebook fa-2x"></i></a>
+                                <a href="#" class="text-primary"><i class="fab fa-twitter fa-2x"></i></a>
+                                <a href="#" class="text-primary"><i class="fab fa-instagram fa-2x"></i></a>
+                                <a href="#" class="text-primary"><i class="fab fa-linkedin fa-2x"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Frequently Asked Questions</h2>
+                    <p class="text-muted">Find quick answers to common questions</p>
+                </div>
+                
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq1">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse1" aria-expanded="true">
+                                How do I register as a farmer?
+                            </button>
+                        </h2>
+                        <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                To register as a farmer, click on "Register" and select "Farmer" as your account type. 
+                                Fill in your details including farm information. Your account will need admin approval 
+                                before you can start selling.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse2">
+                                How does the delivery work?
+                            </button>
+                        </h2>
+                        <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We offer both home delivery and pickup options. Delivery charges apply for orders 
+                                under ₹1,000. You can schedule delivery dates during checkout, and we'll coordinate 
+                                with the farmer for the freshest produce.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq3">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse3">
+                                What payment methods do you accept?
+                            </button>
+                        </h2>
+                        <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We accept Cash on Delivery (COD), UPI payments, and online payment methods. 
+                                All transactions are secure and protected.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq4">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse4">
+                                How do you ensure product quality?
+                            </button>
+                        </h2>
+                        <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                All farmers on our platform are verified, and their products are reviewed before 
+                                being listed. We have quality standards and customer reviews to ensure you get 
+                                the best fresh produce.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq5">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse5">
+                                Can I return products if I'm not satisfied?
+                            </button>
+                        </h2>
+                        <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, we have a return policy for damaged or unsatisfactory products. Please contact 
+                                our customer support within 24 hours of delivery, and we'll resolve the issue promptly.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section (Placeholder) -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Visit Our Office</h2>
+            <p class="text-muted">Come and meet our team in person</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <!-- Google Maps Embed -->
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d250009.3770971035!2d79.126228597821!3d11.737091337827797!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bab53db2742b407%3A0xf958708721dc64e4!2sUlundurpettai%2C%20Tamil%20Nadu%2C%20India!5e0!3m2!1sen!2ssg!4v1753450467749!5m2!1sen!2ssg" 
+                                width="100%" 
+                                height="450" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function submitContactForm(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const button = form.querySelector('button[type="submit"]');
+        const originalText = button.innerHTML;
+        
+        // Show loading
+        showLoading(button);
+        
+        // Send form data to backend
+        fetch('/contact', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading(button, originalText);
+            
+            if (data.success) {
+                // Show success message
+                showToast('success', data.message);
+                // Reset form
+                form.reset();
+            } else {
+                // Show error message
+                showToast('error', data.message);
+            }
+        })
+        .catch(error => {
+            hideLoading(button, originalText);
+            console.error('Error:', error);
+            showToast('error', 'An error occurred while sending your message. Please try again.');
+        });
+    }
+    
+    // Auto-fill form if user is logged in
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if session.user_id %}
+        // Pre-fill name and email from session if available
+        const nameField = document.getElementById('name');
+        const emailField = document.getElementById('email');
+        
+        if (nameField && '{{ session.full_name }}') {
+            nameField.value = '{{ session.full_name }}';
+        }
+        {% endif %}
+    });
+</script>
+{% endblock %}

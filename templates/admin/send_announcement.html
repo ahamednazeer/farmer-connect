@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Send Announcement - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-bullhorn"></i> Send Announcement</h4>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="announcementForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Announcement Content -->
+                                <div class="mb-4">
+                                    <label for="title" class="form-label">Announcement Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="title" name="title" required
+                                           placeholder="Enter announcement title...">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="message" class="form-label">Message <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="message" name="message" rows="8" required
+                                              placeholder="Enter your announcement message..."></textarea>
+                                    <div class="form-text">You can use HTML formatting for better presentation.</div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label for="priority" class="form-label">Priority</label>
+                                        <select class="form-select" id="priority" name="priority">
+                                            <option value="low">Low Priority</option>
+                                            <option value="medium" selected>Medium Priority</option>
+                                            <option value="high">High Priority</option>
+                                            <option value="urgent">Urgent</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="category" class="form-label">Category</label>
+                                        <select class="form-select" id="category" name="category">
+                                            <option value="general">General</option>
+                                            <option value="update">System Update</option>
+                                            <option value="maintenance">Maintenance</option>
+                                            <option value="promotion">Promotion</option>
+                                            <option value="policy">Policy Change</option>
+                                            <option value="emergency">Emergency</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Delivery Options -->
+                                <div class="mb-4">
+                                    <h6><i class="fas fa-paper-plane"></i> Delivery Methods</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="inAppNotification" name="delivery_methods" value="in_app" checked>
+                                        <label class="form-check-label" for="inAppNotification">
+                                            <i class="fas fa-bell text-info"></i> In-App Notification
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="emailNotification" name="delivery_methods" value="email" checked>
+                                        <label class="form-check-label" for="emailNotification">
+                                            <i class="fas fa-envelope text-primary"></i> Email Notification
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="smsNotification" name="delivery_methods" value="sms">
+                                        <label class="form-check-label" for="smsNotification">
+                                            <i class="fas fa-sms text-success"></i> SMS Notification
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Scheduling -->
+                                <div class="mb-4">
+                                    <h6><i class="fas fa-clock"></i> Scheduling</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="sendNow" name="schedule_type" value="now" checked>
+                                        <label class="form-check-label" for="sendNow">
+                                            Send Now
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="sendLater" name="schedule_type" value="later">
+                                        <label class="form-check-label" for="sendLater">
+                                            Schedule for Later
+                                        </label>
+                                    </div>
+                                    
+                                    <div id="scheduleOptions" class="mt-3" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="scheduleDate" class="form-label">Date</label>
+                                                <input type="date" class="form-control" id="scheduleDate" name="schedule_date">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="scheduleTime" class="form-label">Time</label>
+                                                <input type="time" class="form-control" id="scheduleTime" name="schedule_time">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Recipients -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-users"></i> Recipients</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="allUsers" name="recipients" value="all" checked>
+                                            <label class="form-check-label" for="allUsers">
+                                                <strong>All Users</strong>
+                                                <br><small class="text-muted">{{ total_users }} users</small>
+                                            </label>
+                                        </div>
+                                        <hr>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="farmers" name="recipients" value="farmers">
+                                            <label class="form-check-label" for="farmers">
+                                                Farmers Only
+                                                <br><small class="text-muted">{{ farmer_count }} farmers</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="consumers" name="recipients" value="consumers">
+                                            <label class="form-check-label" for="consumers">
+                                                Consumers Only
+                                                <br><small class="text-muted">{{ consumer_count }} consumers</small>
+                                            </label>
+                                        </div>
+                                        <hr>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="activeUsers" name="recipients" value="active">
+                                            <label class="form-check-label" for="activeUsers">
+                                                Active Users Only
+                                                <br><small class="text-muted">Users active in last 30 days</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="newUsers" name="recipients" value="new">
+                                            <label class="form-check-label" for="newUsers">
+                                                New Users
+                                                <br><small class="text-muted">Registered in last 7 days</small>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <label for="customRecipients" class="form-label">Custom Recipients</label>
+                                            <textarea class="form-control form-control-sm" id="customRecipients" name="custom_recipients" rows="3"
+                                                      placeholder="Enter email addresses separated by commas"></textarea>
+                                            <small class="form-text text-muted">Optional: specific email addresses</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Preview -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-eye"></i> Preview</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="announcementPreview" class="border rounded p-3 bg-light">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                                     style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-bullhorn text-white fa-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <strong id="previewTitle">Announcement Title</strong>
+                                                    <br><small class="text-muted">From: Admin</small>
+                                                </div>
+                                            </div>
+                                            <div id="previewMessage" class="text-muted">
+                                                Your announcement message will appear here...
+                                            </div>
+                                            <div class="mt-2">
+                                                <span id="previewPriority" class="badge bg-secondary">Medium Priority</span>
+                                                <span id="previewCategory" class="badge bg-info">General</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <div>
+                                <button type="button" class="btn btn-outline-primary" id="previewBtn">
+                                    <i class="fas fa-eye"></i> Preview Email
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-secondary me-2" onclick="history.back()">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <i class="fas fa-paper-plane"></i> <span id="submitText">Send Announcement</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Real-time preview updates
+document.getElementById('title').addEventListener('input', function(e) {
+    document.getElementById('previewTitle').textContent = e.target.value || 'Announcement Title';
+});
+
+document.getElementById('message').addEventListener('input', function(e) {
+    const message = e.target.value || 'Your announcement message will appear here...';
+    document.getElementById('previewMessage').innerHTML = message.replace(/\n/g, '<br>');
+});
+
+document.getElementById('priority').addEventListener('change', function(e) {
+    const priority = e.target.value;
+    const badge = document.getElementById('previewPriority');
+    badge.textContent = priority.charAt(0).toUpperCase() + priority.slice(1) + ' Priority';
+    
+    // Update badge color based on priority
+    badge.className = 'badge ';
+    switch(priority) {
+        case 'low': badge.className += 'bg-secondary'; break;
+        case 'medium': badge.className += 'bg-info'; break;
+        case 'high': badge.className += 'bg-warning'; break;
+        case 'urgent': badge.className += 'bg-danger'; break;
+    }
+});
+
+document.getElementById('category').addEventListener('change', function(e) {
+    const category = e.target.value;
+    document.getElementById('previewCategory').textContent = category.charAt(0).toUpperCase() + category.slice(1);
+});
+
+// Schedule options toggle
+document.querySelectorAll('input[name="schedule_type"]').forEach(radio => {
+    radio.addEventListener('change', function(e) {
+        const scheduleOptions = document.getElementById('scheduleOptions');
+        const submitText = document.getElementById('submitText');
+        
+        if (e.target.value === 'later') {
+            scheduleOptions.style.display = 'block';
+            submitText.textContent = 'Schedule Announcement';
+        } else {
+            scheduleOptions.style.display = 'none';
+            submitText.textContent = 'Send Announcement';
+        }
+    });
+});
+
+// Recipients selection logic
+document.getElementById('allUsers').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        document.getElementById('farmers').checked = false;
+        document.getElementById('consumers').checked = false;
+    }
+});
+
+document.getElementById('farmers').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        document.getElementById('allUsers').checked = false;
+    }
+});
+
+document.getElementById('consumers').addEventListener('change', function(e) {
+    if (e.target.checked) {
+        document.getElementById('allUsers').checked = false;
+    }
+});
+
+// Form submission
+document.getElementById('announcementForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    // Disable button and show loading
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
+    fetch(`{{ url_for('admin.send_announcement') }}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Announcement sent successfully!');
+            window.location.href = `{{ url_for('admin.dashboard') }}`;
+        } else {
+            alert(data.message || 'Failed to send announcement');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while sending the announcement');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+
+// Preview email functionality
+document.getElementById('previewBtn').addEventListener('click', function() {
+    const title = document.getElementById('title').value;
+    const message = document.getElementById('message').value;
+    
+    if (!title || !message) {
+        alert('Please enter both title and message to preview');
+        return;
+    }
+    
+    // Open preview in a new window
+    const previewWindow = window.open('', 'preview', 'width=600,height=400,scrollbars=yes');
+    previewWindow.document.write(`
+        <html>
+        <head>
+            <title>Email Preview</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .email-container { border: 1px solid #ddd; padding: 20px; max-width: 500px; }
+                .header { background: #28a745; color: white; padding: 15px; margin: -20px -20px 20px -20px; }
+                .priority { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-top: 10px; }
+                .low { background: #6c757d; }
+                .medium { background: #17a2b8; }
+                .high { background: #ffc107; }
+                .urgent { background: #dc3545; }
+            </style>
+        </head>
+        <body>
+            <div class="email-container">
+                <div class="header">
+                    <h2>${title}</h2>
+                    <small>From: Farmer Connect Admin</small>
+                </div>
+                <div class="content">
+                    ${message.replace(/\n/g, '<br>')}
+                </div>
+                <div class="priority ${document.getElementById('priority').value}">
+                    ${document.getElementById('priority').value.toUpperCase()} PRIORITY
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+// Set minimum date for scheduling to today
+document.getElementById('scheduleDate').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

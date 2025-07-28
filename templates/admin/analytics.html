@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2><i class="fas fa-chart-line"></i> Analytics Dashboard</h2>
+            <p class="text-muted">Comprehensive platform insights and performance metrics</p>
+        </div>
+    </div>
+    
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_users }}</h4>
+                            <p class="mb-0">Total Users</p>
+                        </div>
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <div class="mt-2">
+                        <small>
+                            <i class="fas fa-arrow-up"></i> +{{ stats.monthly_user_growth }} this month
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_revenue|rupee }}</h4>
+                            <p class="mb-0">Total Revenue</p>
+                        </div>
+                        <i class="fas fa-rupee-sign fa-2x"></i>
+                    </div>
+                    <div class="mt-2">
+                        <small>{{ stats.monthly_revenue|rupee }} this month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ (stats.total_farmers + stats.total_consumers) }}</h4>
+                            <p class="mb-0">Active Users</p>
+                        </div>
+                        <i class="fas fa-user-check fa-2x"></i>
+                    </div>
+                    <div class="mt-2">
+                        <small>{{ stats.total_farmers }} farmers, {{ stats.total_consumers }} consumers</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ (stats.monthly_revenue / stats.monthly_user_growth)|round(0)|rupee if stats.monthly_user_growth > 0 else '₹0' }}</h4>
+                            <p class="mb-0">Avg. Revenue per User</p>
+                        </div>
+                        <i class="fas fa-calculator fa-2x"></i>
+                    </div>
+                    <div class="mt-2">
+                        <small>Monthly average</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- User Growth Chart -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-area"></i> User Growth Trend
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="userGrowthChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Revenue Chart -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Revenue Trend
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Tables -->
+    <div class="row mb-4">
+        <!-- Top Farmers -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy"></i> Top Performing Farmers
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if top_farmers %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Farmer</th>
+                                    <th>Orders</th>
+                                    <th>Earnings</th>
+                                    <th>Rating</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for farmer in top_farmers[:10] %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ farmer.farm_name or farmer.full_name }}</strong><br>
+                                        <small class="text-muted">{{ farmer.full_name }}</small>
+                                    </td>
+                                    <td>{{ farmer.total_orders or 0 }}</td>
+                                    <td>{{ (farmer.total_earnings or 0)|rupee }}</td>
+                                    <td>
+                                        {% if farmer.avg_rating %}
+                                        <span class="badge badge-success">
+                                            {{ farmer.avg_rating|round(1) }} ⭐
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">No ratings</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No farmer data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Products -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star"></i> Best Selling Products
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if top_products %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Farm</th>
+                                    <th>Sold</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in top_products[:10] %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ product.name }}</strong><br>
+                                        <small class="text-muted">{{ product.category }}</small>
+                                    </td>
+                                    <td>{{ product.farm_name }}</td>
+                                    <td>{{ product.total_sold }}</td>
+                                    <td>{{ product.revenue|rupee }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No product data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Performance -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie"></i> Category Performance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Popular Searches -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search"></i> Popular Searches
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if popular_searches %}
+                    <div class="list-group list-group-flush">
+                        {% for search in popular_searches[:10] %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ search.query }}</span>
+                                <span class="badge badge-primary">{{ search.search_count }}</span>
+                            </div>
+                            <small class="text-muted">
+                                Avg. {{ search.avg_results|round(0) }} results
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No search data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Options -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download"></i> Export Analytics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>Download detailed analytics reports for further analysis.</p>
+                    <div class="btn-group">
+                        <a href="{{ url_for('admin.export_report', report_type='users', format='csv') }}" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-users"></i> Users Report
+                        </a>
+                        <a href="{{ url_for('admin.export_report', report_type='orders', format='csv') }}" 
+                           class="btn btn-outline-success">
+                            <i class="fas fa-shopping-bag"></i> Orders Report
+                        </a>
+                        <a href="{{ url_for('admin.export_report', report_type='products', format='csv') }}" 
+                           class="btn btn-outline-info">
+                            <i class="fas fa-box"></i> Products Report
+                        </a>
+                        <a href="{{ url_for('admin.export_report', report_type='revenue', format='csv') }}" 
+                           class="btn btn-outline-warning">
+                            <i class="fas fa-chart-line"></i> Revenue Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// User Growth Chart
+const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+const userGrowthChart = new Chart(userGrowthCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for data in monthly_data %}'{{ data.month_display }}'{{ ',' if not loop.last }}{% endfor %}],
+        datasets: [{
+            label: 'Farmers',
+            data: [{% for data in monthly_data %}{{ data.farmers }}{{ ',' if not loop.last }}{% endfor %}],
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.4
+        }, {
+            label: 'Consumers',
+            data: [{% for data in monthly_data %}{{ data.consumers }}{{ ',' if not loop.last }}{% endfor %}],
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top'
+            },
+            title: {
+                display: true,
+                text: 'User Registration Trends'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Revenue Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for data in revenue_data %}'{{ data.month_display }}'{{ ',' if not loop.last }}{% endfor %}],
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: [{% for data in revenue_data %}{{ data.revenue or 0 }}{{ ',' if not loop.last }}{% endfor %}],
+            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+            borderColor: 'rgba(40, 167, 69, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'Monthly Revenue'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value, index, values) {
+                        return '₹' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Category Performance Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for cat in category_stats %}'{{ cat.category }}'{{ ',' if not loop.last }}{% endfor %}],
+        datasets: [{
+            data: [{% for cat in category_stats %}{{ cat.revenue or 0 }}{{ ',' if not loop.last }}{% endfor %}],
+            backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right'
+            },
+            title: {
+                display: true,
+                text: 'Revenue by Category'
+            }
+        }
+    }
+});
+
+// Auto refresh every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

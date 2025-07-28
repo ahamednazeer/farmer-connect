@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-success">Privacy Policy</h1>
+                <p class="lead text-muted">Your privacy is important to us</p>
+                <p class="text-muted">Last updated: {{ last_updated or 'January 2024' }}</p>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <!-- Table of Contents -->
+                            <div class="sticky-top" style="top: 100px;">
+                                <h6 class="text-primary mb-3">Contents</h6>
+                                <nav class="nav nav-pills flex-column">
+                                    <a class="nav-link text-muted py-1" href="#information-collection">Information We Collect</a>
+                                    <a class="nav-link text-muted py-1" href="#information-usage">How We Use Information</a>
+                                    <a class="nav-link text-muted py-1" href="#information-sharing">Information Sharing</a>
+                                    <a class="nav-link text-muted py-1" href="#data-security">Data Security</a>
+                                    <a class="nav-link text-muted py-1" href="#cookies">Cookies</a>
+                                    <a class="nav-link text-muted py-1" href="#user-rights">Your Rights</a>
+                                    <a class="nav-link text-muted py-1" href="#third-party">Third-Party Services</a>
+                                    <a class="nav-link text-muted py-1" href="#children">Children's Privacy</a>
+                                    <a class="nav-link text-muted py-1" href="#changes">Policy Changes</a>
+                                    <a class="nav-link text-muted py-1" href="#contact">Contact Us</a>
+                                </nav>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-9">
+                            <!-- Introduction -->
+                            <section class="mb-5">
+                                <p class="lead">
+                                    At Farmer Connect, we are committed to protecting your privacy and ensuring the security of your personal information. 
+                                    This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
+                                </p>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Quick Summary:</strong> We collect information to provide better services, we don't sell your data, 
+                                    and we use industry-standard security measures to protect your information.
+                                </div>
+                            </section>
+
+                            <!-- Information We Collect -->
+                            <section id="information-collection" class="mb-5">
+                                <h3 class="text-primary mb-4">1. Information We Collect</h3>
+                                
+                                <h5 class="mb-3">Personal Information</h5>
+                                <p>When you register and use our platform, we may collect:</p>
+                                <ul>
+                                    <li><strong>Account Information:</strong> Name, email address, phone number, username, password</li>
+                                    <li><strong>Profile Information:</strong> Profile picture, bio, location, farming details (for farmers)</li>
+                                    <li><strong>Contact Information:</strong> Delivery addresses, emergency contact details</li>
+                                    <li><strong>Verification Information:</strong> Government ID, farming certificates, business documents</li>
+                                </ul>
+
+                                <h5 class="mb-3 mt-4">Transaction Information</h5>
+                                <ul>
+                                    <li>Order details, payment information, transaction history</li>
+                                    <li>Communication between buyers and sellers</li>
+                                    <li>Reviews and ratings</li>
+                                    <li>Shipping and delivery information</li>
+                                </ul>
+
+                                <h5 class="mb-3 mt-4">Technical Information</h5>
+                                <ul>
+                                    <li>IP address, device information, browser type</li>
+                                    <li>Usage data, log files, cookies</li>
+                                    <li>Location data (with your permission)</li>
+                                    <li>Performance and analytics data</li>
+                                </ul>
+                            </section>
+
+                            <!-- How We Use Information -->
+                            <section id="information-usage" class="mb-5">
+                                <h3 class="text-primary mb-4">2. How We Use Your Information</h3>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="text-success mb-3">Core Services</h5>
+                                        <ul>
+                                            <li>Create and manage your account</li>
+                                            <li>Process orders and payments</li>
+                                            <li>Facilitate communication</li>
+                                            <li>Verify farmer credentials</li>
+                                            <li>Provide customer support</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="text-info mb-3">Platform Improvement</h5>
+                                        <ul>
+                                            <li>Analyze usage patterns</li>
+                                            <li>Improve our services</li>
+                                            <li>Personalize recommendations</li>
+                                            <li>Prevent fraud and abuse</li>
+                                            <li>Ensure platform security</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <h5 class="text-warning mb-3 mt-4">Communication</h5>
+                                <ul>
+                                    <li>Send order confirmations and updates</li>
+                                    <li>Notify about account activities</li>
+                                    <li>Share promotional offers (with your consent)</li>
+                                    <li>Send security alerts</li>
+                                    <li>Provide customer support</li>
+                                </ul>
+                            </section>
+
+                            <!-- Information Sharing -->
+                            <section id="information-sharing" class="mb-5">
+                                <h3 class="text-primary mb-4">3. Information Sharing and Disclosure</h3>
+                                
+                                <div class="alert alert-success">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <strong>We do not sell your personal information to third parties.</strong>
+                                </div>
+
+                                <p>We may share your information in the following circumstances:</p>
+
+                                <h5 class="mb-3">With Your Consent</h5>
+                                <ul>
+                                    <li>When you explicitly agree to share information</li>
+                                    <li>For promotional activities you've opted into</li>
+                                </ul>
+
+                                <h5 class="mb-3 mt-4">Service Providers</h5>
+                                <ul>
+                                    <li>Payment processors for transaction processing</li>
+                                    <li>Delivery partners for order fulfillment</li>
+                                    <li>Cloud service providers for data storage</li>
+                                    <li>Analytics providers for platform improvement</li>
+                                </ul>
+
+                                <h5 class="mb-3 mt-4">Legal Requirements</h5>
+                                <ul>
+                                    <li>To comply with applicable laws and regulations</li>
+                                    <li>To respond to legal process or government requests</li>
+                                    <li>To protect the rights, property, or safety of our users</li>
+                                </ul>
+
+                                <h5 class="mb-3 mt-4">Business Transfers</h5>
+                                <p>In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction.</p>
+                            </section>
+
+                            <!-- Data Security -->
+                            <section id="data-security" class="mb-5">
+                                <h3 class="text-primary mb-4">4. Data Security</h3>
+                                
+                                <p>We implement industry-standard security measures to protect your personal information:</p>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-success">Technical Safeguards</h6>
+                                        <ul>
+                                            <li>SSL/TLS encryption for data transmission</li>
+                                            <li>Encrypted data storage</li>
+                                            <li>Secure servers and databases</li>
+                                            <li>Regular security audits</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-info">Administrative Safeguards</h6>
+                                        <ul>
+                                            <li>Limited access to personal information</li>
+                                            <li>Employee training on data privacy</li>
+                                            <li>Background checks for staff</li>
+                                            <li>Incident response procedures</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning mt-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Note:</strong> No method of transmission over the internet or electronic storage is 100% secure. 
+                                    While we strive to protect your information, we cannot guarantee absolute security.
+                                </div>
+                            </section>
+
+                            <!-- Cookies -->
+                            <section id="cookies" class="mb-5">
+                                <h3 class="text-primary mb-4">5. Cookies and Tracking Technologies</h3>
+                                
+                                <p>We use cookies and similar technologies to enhance your experience:</p>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Cookie Type</th>
+                                                <th>Purpose</th>
+                                                <th>Duration</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Essential</strong></td>
+                                                <td>Enable basic functionality, maintain sessions</td>
+                                                <td>Session/1 year</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Performance</strong></td>
+                                                <td>Analyze usage, improve platform performance</td>
+                                                <td>1-2 years</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Functional</strong></td>
+                                                <td>Remember preferences, personalize experience</td>
+                                                <td>1 year</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Marketing</strong></td>
+                                                <td>Show relevant ads, track marketing effectiveness</td>
+                                                <td>1-2 years</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <p>You can control cookie settings through your browser preferences. Note that disabling certain cookies may affect platform functionality.</p>
+                            </section>
+
+                            <!-- User Rights -->
+                            <section id="user-rights" class="mb-5">
+                                <h3 class="text-primary mb-4">6. Your Rights and Choices</h3>
+                                
+                                <p>You have the following rights regarding your personal information:</p>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card border-success h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-success">
+                                                    <i class="fas fa-eye"></i> Access
+                                                </h6>
+                                                <p class="card-text">Request a copy of your personal information we hold.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-info h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-info">
+                                                    <i class="fas fa-edit"></i> Correction
+                                                </h6>
+                                                <p class="card-text">Update or correct inaccurate personal information.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="card border-warning h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-warning">
+                                                    <i class="fas fa-trash"></i> Deletion
+                                                </h6>
+                                                <p class="card-text">Request deletion of your personal information (subject to legal requirements).</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-danger h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-danger">
+                                                    <i class="fas fa-ban"></i> Objection
+                                                </h6>
+                                                <p class="card-text">Object to certain processing of your information.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info mt-4">
+                                    <i class="fas fa-info-circle"></i>
+                                    To exercise these rights, please contact us at <strong>privacy@farmerconnect.com</strong> 
+                                    or through your account settings.
+                                </div>
+                            </section>
+
+                            <!-- Third-Party Services -->
+                            <section id="third-party" class="mb-5">
+                                <h3 class="text-primary mb-4">7. Third-Party Services</h3>
+                                
+                                <p>Our platform may contain links to third-party websites or integrate with third-party services:</p>
+
+                                <ul>
+                                    <li><strong>Payment Gateways:</strong> We use secure payment processors for transaction handling</li>
+                                    <li><strong>Social Media:</strong> Integration with social platforms for sharing and login</li>
+                                    <li><strong>Analytics:</strong> Third-party analytics tools to understand platform usage</li>
+                                    <li><strong>Delivery Partners:</strong> Integration with logistics providers for order delivery</li>
+                                </ul>
+
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Important:</strong> These third-party services have their own privacy policies. 
+                                    We recommend reviewing their policies before using their services.
+                                </div>
+                            </section>
+
+                            <!-- Children's Privacy -->
+                            <section id="children" class="mb-5">
+                                <h3 class="text-primary mb-4">8. Children's Privacy</h3>
+                                
+                                <p>
+                                    Our platform is not intended for children under 18 years of age. We do not knowingly collect 
+                                    personal information from children under 18. If you are under 18, please do not provide any 
+                                    information on our platform.
+                                </p>
+
+                                <p>
+                                    If we become aware that we have collected personal information from a child under 18, 
+                                    we will take steps to delete such information from our records.
+                                </p>
+                            </section>
+
+                            <!-- Policy Changes -->
+                            <section id="changes" class="mb-5">
+                                <h3 class="text-primary mb-4">9. Changes to This Privacy Policy</h3>
+                                
+                                <p>
+                                    We may update this Privacy Policy from time to time. When we make changes, we will:
+                                </p>
+
+                                <ul>
+                                    <li>Update the "Last updated" date at the top of this policy</li>
+                                    <li>Notify you via email or platform notification for significant changes</li>
+                                    <li>Provide at least 30 days notice for material changes</li>
+                                    <li>Maintain previous versions for your reference</li>
+                                </ul>
+
+                                <p>
+                                    Your continued use of our platform after any changes indicates your acceptance 
+                                    of the updated Privacy Policy.
+                                </p>
+                            </section>
+
+                            <!-- Contact Information -->
+                            <section id="contact" class="mb-5">
+                                <h3 class="text-primary mb-4">10. Contact Us</h3>
+                                
+                                <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your personal information, please contact us:</p>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card border-primary">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-envelope text-primary"></i> Email
+                                                </h6>
+                                                <p class="card-text">
+                                                    <strong>Privacy Officer:</strong><br>
+                                                    privacy@farmerconnect.com
+                                                </p>
+                                                <p class="card-text">
+                                                    <strong>General Support:</strong><br>
+                                                    support@farmerconnect.com
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-map-marker-alt text-success"></i> Address
+                                                </h6>
+                                                <p class="card-text">
+                                                    Farmer Connect Privacy Team<br>
+                                                    123 Agriculture Street<br>
+                                                    Green City, State 12345<br>
+                                                    India
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-success mt-4">
+                                    <i class="fas fa-clock"></i>
+                                    <strong>Response Time:</strong> We aim to respond to all privacy-related inquiries within 5 business days.
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.nav-pills .nav-link {
+    font-size: 0.875rem;
+    border-radius: 0;
+    border-left: 2px solid transparent;
+}
+
+.nav-pills .nav-link:hover {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-left-color: #28a745;
+}
+
+.sticky-top {
+    z-index: 1020;
+}
+
+section {
+    scroll-margin-top: 100px;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Update active navigation link on scroll
+window.addEventListener('scroll', function() {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    let currentSection = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.scrollY >= sectionTop) {
+            currentSection = section.getAttribute('id');
+        }
+    });
+    
+    navLinks.forEach(link => {
+        link.classList.remove('active', 'text-primary');
+        link.classList.add('text-muted');
+        if (link.getAttribute('href') === '#' + currentSection) {
+            link.classList.add('active', 'text-primary');
+            link.classList.remove('text-muted');
+        }
+    });
+});
+</script>
+{% endblock %}

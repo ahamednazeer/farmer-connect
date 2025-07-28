@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">Edit Product</h2>
+            <p class="text-muted">Update your product information</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('farmer.products') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Products
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit"></i> Edit Product Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <!-- Product Name -->
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ product.name }}" placeholder="e.g., Fresh Tomatoes" required>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.name }}" 
+                                            {{ 'selected' if category.name == product.category else '' }}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-4">
+                                <label for="price" class="form-label">Price per Unit *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           value="{{ product.price }}" step="0.01" min="0.01" required>
+                                </div>
+                            </div>
+
+                            <!-- Unit -->
+                            <div class="col-md-4">
+                                <label for="unit" class="form-label">Unit *</label>
+                                <select class="form-select" id="unit" name="unit" required>
+                                    <option value="">Select Unit</option>
+                                    <option value="kg" {{ 'selected' if product.unit == 'kg' else '' }}>Kilogram (kg)</option>
+                                    <option value="gram" {{ 'selected' if product.unit == 'gram' else '' }}>Gram (g)</option>
+                                    <option value="piece" {{ 'selected' if product.unit == 'piece' else '' }}>Piece</option>
+                                    <option value="dozen" {{ 'selected' if product.unit == 'dozen' else '' }}>Dozen</option>
+                                    <option value="liter" {{ 'selected' if product.unit == 'liter' else '' }}>Liter (L)</option>
+                                    <option value="bunch" {{ 'selected' if product.unit == 'bunch' else '' }}>Bunch</option>
+                                    <option value="basket" {{ 'selected' if product.unit == 'basket' else '' }}>Basket</option>
+                                </select>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label">Available Quantity *</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       value="{{ product.quantity }}" min="0" required>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"
+                                          placeholder="Describe your product, farming methods, freshness details, etc.">{{ product.description or '' }}</textarea>
+                                <div class="form-text">Help customers understand the quality and uniqueness of your product</div>
+                            </div>
+
+                            <!-- Current Image Display -->
+                            {% if product.image %}
+                            <div class="col-12">
+                                <label class="form-label">Current Product Image</label>
+                                <div class="mb-3">
+                                    <img src="{{ url_for('static', filename=product.image) }}" 
+                                         alt="{{ product.name }}" class="img-thumbnail" style="max-height: 200px;">
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Product Image -->
+                            <div class="col-12">
+                                <label for="image" class="form-label">
+                                    {% if product.image %}Change Product Image{% else %}Product Image{% endif %}
+                                </label>
+                                <input type="file" class="form-control" id="image" name="image" 
+                                       accept="image/jpeg,image/jpg,image/png">
+                                <div class="form-text">
+                                    {% if product.image %}
+                                        Leave empty to keep current image. 
+                                    {% endif %}
+                                    Upload a clear, bright image (JPG, PNG - Max 5MB)
+                                </div>
+                            </div>
+
+                            <!-- Dates Section -->
+                            <div class="col-12">
+                                <hr class="my-3">
+                                <h6 class="text-muted">Date Information (Optional)</h6>
+                            </div>
+
+                            <!-- Harvest Date -->
+                            <div class="col-md-6">
+                                <label for="harvest_date" class="form-label">Harvest Date</label>
+                                <input type="date" class="form-control" id="harvest_date" name="harvest_date"
+                                       value="{{ product.harvest_date if product.harvest_date else '' }}">
+                                <div class="form-text">When was this product harvested?</div>
+                            </div>
+
+                            <!-- Expiry Date -->
+                            <div class="col-md-6">
+                                <label for="expiry_date" class="form-label">Best Before Date</label>
+                                <input type="date" class="form-control" id="expiry_date" name="expiry_date"
+                                       value="{{ product.expiry_date if product.expiry_date else '' }}">
+                                <div class="form-text">Until when is this product fresh?</div>
+                            </div>
+
+                            <!-- Special Properties -->
+                            <div class="col-12">
+                                <hr class="my-3">
+                                <h6 class="text-muted">Product Properties</h6>
+                            </div>
+
+                            <!-- Organic -->
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="organic" name="organic"
+                                           {{ 'checked' if product.organic else '' }}>
+                                    <label class="form-check-label" for="organic">
+                                        <i class="fas fa-leaf text-success"></i> This is an organic product
+                                    </label>
+                                    <div class="form-text">Check this if your product is organically grown without chemicals</div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Buttons -->
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fas fa-save"></i> Update Product
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <a href="{{ url_for('farmer.products') }}" class="btn btn-outline-secondary w-100">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Product Status Information -->
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Product Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <strong>Status:</strong><br>
+                            {% if not product.is_approved %}
+                                <span class="badge bg-warning">Pending Approval</span>
+                            {% elif product.quantity <= 0 %}
+                                <span class="badge bg-danger">Out of Stock</span>
+                            {% else %}
+                                <span class="badge bg-success">Active</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Views:</strong><br>
+                            {{ product.views or 0 }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Created:</strong><br>
+                            {{ moment(product.created_at).format('DD/MM/YYYY') if product.created_at else 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Last Updated:</strong><br>
+                            {{ moment(product.updated_at).format('DD/MM/YYYY') if product.updated_at else 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Script -->
+<script>
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Validate file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            this.value = '';
+            return;
+        }
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPG, PNG)');
+            this.value = '';
+            return;
+        }
+    }
+});
+
+// Set minimum date for harvest and expiry dates
+const today = new Date().toISOString().split('T')[0];
+const harvestDate = document.getElementById('harvest_date');
+const expiryDate = document.getElementById('expiry_date');
+
+harvestDate.max = today; // Can't harvest in the future
+
+// Update expiry date minimum when harvest date changes
+harvestDate.addEventListener('change', function() {
+    if (this.value) {
+        expiryDate.min = this.value;
+        if (expiryDate.value && expiryDate.value <= this.value) {
+            expiryDate.value = '';
+        }
+    }
+});
+
+// Set initial expiry date minimum if harvest date exists
+if (harvestDate.value) {
+    expiryDate.min = harvestDate.value;
+}
+</script>
+{% endblock %}

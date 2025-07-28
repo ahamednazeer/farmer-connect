@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Details - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">
+                <i class="fas fa-tractor"></i> Farmer Details
+            </h2>
+            <p class="text-muted">Detailed information about {{ farmer.full_name }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.farmers') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Farmers
+            </a>
+        </div>
+    </div>
+
+    <!-- Farmer Information -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Farmer Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Personal Details</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Full Name:</strong></td>
+                                    <td>{{ farmer.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ farmer.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Phone:</strong></td>
+                                    <td>{{ farmer.phone or 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Location:</strong></td>
+                                    <td>{{ farmer.location or 'Not provided' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Farm Details</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Farm Name:</strong></td>
+                                    <td>{{ farmer.farm_name or 'Not set' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if farmer.is_approved %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Account Status:</strong></td>
+                                    <td>
+                                        {% if farmer.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Joined:</strong></td>
+                                    <td>{{ farmer.created_at | date_format }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if products %}
+            <!-- Products -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shopping-basket"></i> Products ({{ products|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for product in products %}
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3">
+                                <div class="d-flex align-items-center">
+                                    {% if product.image %}
+                                    <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                         alt="Product" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% endif %}
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ product.name }}</h6>
+                                        <p class="mb-1 text-success">{{ product.price|rupee }}/{{ product.unit }}</p>
+                                        {% if product.is_approved %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- Profile Image -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-camera"></i> Profile Image</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if farmer.profile_image %}
+                    <img src="{{ url_for('static', filename='uploads/profiles/' + farmer.profile_image) }}" 
+                         alt="Profile" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" 
+                         style="width: 150px; height: 150px; font-size: 48px;">
+                        {{ farmer.full_name[0]|upper }}
+                    </div>
+                    {% endif %}
+                    <p class="text-muted">{{ farmer.full_name }}</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if not farmer.is_approved %}
+                        <button class="btn btn-success" onclick="approveFarmer({{ farmer.id }})">
+                            <i class="fas fa-check"></i> Approve Farmer
+                        </button>
+                        {% endif %}
+                        
+                        {% if farmer.is_active %}
+                        <button class="btn btn-warning" onclick="toggleFarmerStatus({{ farmer.id }}, false)">
+                            <i class="fas fa-pause"></i> Deactivate Account
+                        </button>
+                        {% else %}
+                        <button class="btn btn-success" onclick="toggleFarmerStatus({{ farmer.id }}, true)">
+                            <i class="fas fa-play"></i> Activate Account
+                        </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-danger" onclick="deleteFarmer({{ farmer.id }})">
+                            <i class="fas fa-trash"></i> Delete Farmer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary">{{ farmer_stats.total_products or 0 }}</h4>
+                            <p class="text-muted mb-0">Products</p>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ farmer_stats.total_orders or 0 }}</h4>
+                            <p class="text-muted mb-0">Orders</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function approveFarmer(farmerId) {
+    if (confirm('Are you sure you want to approve this farmer?')) {
+        fetch(`/admin/farmers/approve/${farmerId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                showAlert('Farmer approved successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert('Error approving farmer', 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Error approving farmer', 'danger');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function toggleFarmerStatus(farmerId, activate) {
+    const action = activate ? 'activate' : 'deactivate';
+    const message = activate ? 'activate' : 'deactivate';
+    
+    if (confirm(`Are you sure you want to ${message} this farmer?`)) {
+        fetch(`/admin/farmers/${action}/${farmerId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                showAlert(`Farmer ${message}d successfully!`, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert(`Error ${message}ing farmer`, 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert(`Error ${message}ing farmer`, 'danger');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function deleteFarmer(farmerId) {
+    if (confirm('Are you sure you want to delete this farmer? This action cannot be undone.')) {
+        fetch(`/admin/farmers/delete/${farmerId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                showAlert('Farmer deleted successfully!', 'success');
+                setTimeout(() => window.location.href = '/admin/farmers', 1000);
+            } else {
+                showAlert('Error deleting farmer', 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Error deleting farmer', 'danger');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

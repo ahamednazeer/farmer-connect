@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Site Settings - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-globe"></i> Site Settings</h4>
+                        <button class="btn btn-light btn-sm" onclick="previewSite()">
+                            <i class="fas fa-eye"></i> Preview Site
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="siteSettingsForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Basic Site Information -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="siteName" class="form-label">Site Name <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="siteName" name="site_name" 
+                                                           value="{{ site_settings.site_name or 'Farmer Connect' }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="siteTagline" class="form-label">Site Tagline</label>
+                                                    <input type="text" class="form-control" id="siteTagline" name="site_tagline" 
+                                                           value="{{ site_settings.site_tagline or 'Connecting Farmers with Consumers' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="siteDescription" class="form-label">Site Description</label>
+                                            <textarea class="form-control" id="siteDescription" name="site_description" rows="3">{{ site_settings.site_description or 'A platform connecting farmers directly with consumers for fresh, organic produce.' }}</textarea>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="siteEmail" class="form-label">Contact Email</label>
+                                                    <input type="email" class="form-control" id="siteEmail" name="site_email" 
+                                                           value="{{ site_settings.site_email or 'contact@farmerconnect.com' }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="sitePhone" class="form-label">Contact Phone</label>
+                                                    <input type="tel" class="form-control" id="sitePhone" name="site_phone" 
+                                                           value="{{ site_settings.site_phone or '+91 9876543210' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="siteAddress" class="form-label">Business Address</label>
+                                            <textarea class="form-control" id="siteAddress" name="site_address" rows="2">{{ site_settings.site_address or '123 Agriculture Street, Green City, India' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SEO Settings -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-search"></i> SEO Settings</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="metaTitle" class="form-label">Meta Title</label>
+                                            <input type="text" class="form-control" id="metaTitle" name="meta_title" 
+                                                   value="{{ site_settings.meta_title or 'Farmer Connect - Fresh Produce Direct from Farmers' }}" maxlength="60">
+                                            <small class="form-text text-muted">Recommended: 50-60 characters</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="metaDescription" class="form-label">Meta Description</label>
+                                            <textarea class="form-control" id="metaDescription" name="meta_description" rows="3" maxlength="160">{{ site_settings.meta_description or 'Buy fresh, organic produce directly from local farmers. Support sustainable agriculture and get the freshest fruits and vegetables delivered to your door.' }}</textarea>
+                                            <small class="form-text text-muted">Recommended: 150-160 characters</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="metaKeywords" class="form-label">Meta Keywords</label>
+                                            <input type="text" class="form-control" id="metaKeywords" name="meta_keywords" 
+                                                   value="{{ site_settings.meta_keywords or 'farmer, organic, fresh produce, vegetables, fruits, local food, sustainable agriculture' }}">
+                                            <small class="form-text text-muted">Separate keywords with commas</small>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableSitemap" name="enable_sitemap" 
+                                                   {% if site_settings.enable_sitemap != false %}checked{% endif %}>
+                                            <label class="form-check-label" for="enableSitemap">
+                                                Generate XML Sitemap
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Social Media -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-share-alt"></i> Social Media</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="facebookUrl" class="form-label">Facebook URL</label>
+                                                    <input type="url" class="form-control" id="facebookUrl" name="facebook_url" 
+                                                           value="{{ site_settings.facebook_url or '' }}" placeholder="https://facebook.com/yourpage">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="twitterUrl" class="form-label">Twitter URL</label>
+                                                    <input type="url" class="form-control" id="twitterUrl" name="twitter_url" 
+                                                           value="{{ site_settings.twitter_url or '' }}" placeholder="https://twitter.com/yourhandle">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="instagramUrl" class="form-label">Instagram URL</label>
+                                                    <input type="url" class="form-control" id="instagramUrl" name="instagram_url" 
+                                                           value="{{ site_settings.instagram_url or '' }}" placeholder="https://instagram.com/yourprofile">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="linkedinUrl" class="form-label">LinkedIn URL</label>
+                                                    <input type="url" class="form-control" id="linkedinUrl" name="linkedin_url" 
+                                                           value="{{ site_settings.linkedin_url or '' }}" placeholder="https://linkedin.com/company/yourcompany">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Business Settings -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-briefcase"></i> Business Settings</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="businessHours" class="form-label">Business Hours</label>
+                                                    <textarea class="form-control" id="businessHours" name="business_hours" rows="3">{{ site_settings.business_hours or 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 2:00 PM\nSun: Closed' }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="deliveryAreas" class="form-label">Delivery Areas</label>
+                                                    <textarea class="form-control" id="deliveryAreas" name="delivery_areas" rows="3">{{ site_settings.delivery_areas or 'Delhi NCR\nMumbai\nBangalore\nHyderabad\nChennai' }}</textarea>
+                                                    <small class="form-text text-muted">One area per line</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="minOrderValue" class="form-label">Minimum Order Value (₹)</label>
+                                                    <input type="number" class="form-control" id="minOrderValue" name="min_order_value" 
+                                                           value="{{ site_settings.min_order_value or 500 }}" min="0" step="50">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="freeDeliveryThreshold" class="form-label">Free Delivery Above (₹)</label>
+                                                    <input type="number" class="form-control" id="freeDeliveryThreshold" name="free_delivery_threshold" 
+                                                           value="{{ site_settings.free_delivery_threshold or 1000 }}" min="0" step="50">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="deliveryCharge" class="form-label">Standard Delivery Charge (₹)</label>
+                                                    <input type="number" class="form-control" id="deliveryCharge" name="delivery_charge" 
+                                                           value="{{ site_settings.delivery_charge or 50 }}" min="0" step="10">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="allowGuestCheckout" name="allow_guest_checkout" 
+                                                           {% if site_settings.allow_guest_checkout %}checked{% endif %}>
+                                                    <label class="form-check-label" for="allowGuestCheckout">
+                                                        Allow Guest Checkout
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="enableReviews" name="enable_reviews" 
+                                                           {% if site_settings.enable_reviews != false %}checked{% endif %}>
+                                                    <label class="form-check-label" for="enableReviews">
+                                                        Enable Product Reviews
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Site Logo -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-image"></i> Site Logo</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            {% if site_settings.site_logo %}
+                                            <img src="{{ url_for('static', filename=site_settings.site_logo) }}" 
+                                                 alt="Site Logo" class="img-fluid" style="max-height: 100px;" id="logoPreview">
+                                            {% else %}
+                                            <div class="bg-light border rounded d-flex align-items-center justify-content-center" 
+                                                 style="height: 100px;" id="logoPreview">
+                                                <i class="fas fa-image fa-2x text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <input type="file" class="form-control" id="siteLogo" name="site_logo" 
+                                               accept="image/*" onchange="previewLogo(this)">
+                                        <small class="form-text text-muted">Recommended: 200x60px, PNG/JPG</small>
+                                    </div>
+                                </div>
+
+                                <!-- Favicon -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-bookmark"></i> Favicon</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            {% if site_settings.favicon %}
+                                            <img src="{{ url_for('static', filename=site_settings.favicon) }}" 
+                                                 alt="Favicon" style="width: 32px; height: 32px;" id="faviconPreview">
+                                            {% else %}
+                                            <div class="bg-light border rounded d-inline-block" 
+                                                 style="width: 32px; height: 32px;" id="faviconPreview">
+                                                <i class="fas fa-star text-muted" style="font-size: 16px; line-height: 32px;"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <input type="file" class="form-control" id="siteFavicon" name="favicon" 
+                                               accept="image/*" onchange="previewFavicon(this)">
+                                        <small class="form-text text-muted">Recommended: 32x32px, ICO/PNG</small>
+                                    </div>
+                                </div>
+
+                                <!-- Theme Colors -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-palette"></i> Theme Colors</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="primaryColor" class="form-label">Primary Color</label>
+                                            <input type="color" class="form-control form-control-color" id="primaryColor" name="primary_color" 
+                                                   value="{{ site_settings.primary_color or '#28a745' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="secondaryColor" class="form-label">Secondary Color</label>
+                                            <input type="color" class="form-control form-control-color" id="secondaryColor" name="secondary_color" 
+                                                   value="{{ site_settings.secondary_color or '#6c757d' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="accentColor" class="form-label">Accent Color</label>
+                                            <input type="color" class="form-control form-control-color" id="accentColor" name="accent_color" 
+                                                   value="{{ site_settings.accent_color or '#ffc107' }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Site Status -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-toggle-on"></i> Site Status</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="siteActive" name="site_active" 
+                                                   {% if site_settings.site_active != false %}checked{% endif %}>
+                                            <label class="form-check-label" for="siteActive">
+                                                Site Active
+                                            </label>
+                                        </div>
+                                        <small class="form-text text-muted">Turn off to put site in maintenance mode</small>
+
+                                        <div class="mt-3">
+                                            <label for="maintenanceMessage" class="form-label">Maintenance Message</label>
+                                            <textarea class="form-control" id="maintenanceMessage" name="maintenance_message" rows="3">{{ site_settings.maintenance_message or 'We are currently performing maintenance. Please check back later.' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                        <i class="fas fa-undo"></i> Reset Changes
+                                    </button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save"></i> Save Site Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('logoPreview').innerHTML = 
+                `<img src="${e.target.result}" alt="Logo Preview" class="img-fluid" style="max-height: 100px;">`;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewFavicon(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('faviconPreview').innerHTML = 
+                `<img src="${e.target.result}" alt="Favicon Preview" style="width: 32px; height: 32px;">`;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewSite() {
+    window.open('{{ url_for("index") }}', '_blank');
+}
+
+function resetForm() {
+    if (confirm('Reset all changes? This will reload the page with original values.')) {
+        location.reload();
+    }
+}
+
+// Form submission
+document.getElementById('siteSettingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    fetch(`{{ url_for('admin.site_settings') }}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Site settings saved successfully!');
+            // Optionally reload to see changes
+            if (confirm('Settings saved! Reload page to see changes?')) {
+                location.reload();
+            }
+        } else {
+            alert(data.message || 'Failed to save site settings');
+        }
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while saving site settings');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+
+// Real-time color preview
+document.getElementById('primaryColor').addEventListener('change', function(e) {
+    document.documentElement.style.setProperty('--bs-primary', e.target.value);
+});
+
+document.getElementById('secondaryColor').addEventListener('change', function(e) {
+    document.documentElement.style.setProperty('--bs-secondary', e.target.value);
+});
+</script>
+{% endblock %}

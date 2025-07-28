@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-primary text-white">
+                    <h3><i class="fas fa-user-plus"></i> Register</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.register') }}">
+                        <!-- User Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Account Type</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="user_type" id="consumer" 
+                                           value="consumer" checked onchange="toggleFarmerFields()">
+                                    <label class="btn btn-outline-primary w-100" for="consumer">
+                                        <i class="fas fa-shopping-cart"></i><br>Consumer
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="user_type" id="farmer" 
+                                           value="farmer" onchange="toggleFarmerFields()">
+                                    <label class="btn btn-outline-success w-100" for="farmer">
+                                        <i class="fas fa-tractor"></i><br>Farmer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" 
+                                       name="username" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" 
+                                       name="email" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" 
+                                           name="password" required minlength="6">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="togglePassword('password')">
+                                        <i class="fas fa-eye" id="password-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="confirm_password" class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirm_password" 
+                                           name="confirm_password" required minlength="6">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="togglePassword('confirm_password')">
+                                        <i class="fas fa-eye" id="confirm_password-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="full_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="full_name" 
+                                       name="full_name" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" 
+                                       name="phone" placeholder="+91-9999999999">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" 
+                                       name="location" required placeholder="City, State">
+                            </div>
+                            
+                            <!-- Farmer-specific fields -->
+                            <div id="farmer-fields" style="display: none;">
+                                <div class="col-12">
+                                    <hr>
+                                    <h5 class="text-success"><i class="fas fa-tractor"></i> Farm Information</h5>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="farm_name" class="form-label">Farm Name</label>
+                                    <input type="text" class="form-control" id="farm_name" 
+                                           name="farm_name" placeholder="Your farm name">
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="farm_description" class="form-label">Farm Description</label>
+                                    <textarea class="form-control" id="farm_description" name="farm_description" 
+                                              rows="3" placeholder="Describe your farm, what you grow, farming practices, etc."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    I agree to the <a href="#" class="text-primary">Terms of Service</a> 
+                                    and <a href="#" class="text-primary">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            <i class="fas fa-user-plus"></i> Register
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <p class="mb-0">Already have an account? 
+                            <a href="{{ url_for('auth.login') }}" class="text-primary">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const eye = document.getElementById(fieldId + '-eye');
+        
+        if (field.type === 'password') {
+            field.type = 'text';
+            eye.classList.remove('fa-eye');
+            eye.classList.add('fa-eye-slash');
+        } else {
+            field.type = 'password';
+            eye.classList.remove('fa-eye-slash');
+            eye.classList.add('fa-eye');
+        }
+    }
+    
+    function toggleFarmerFields() {
+        const farmerRadio = document.getElementById('farmer');
+        const farmerFields = document.getElementById('farmer-fields');
+        const farmName = document.getElementById('farm_name');
+        
+        if (farmerRadio.checked) {
+            farmerFields.style.display = 'block';
+            farmName.required = true;
+        } else {
+            farmerFields.style.display = 'none';
+            farmName.required = false;
+        }
+    }
+    
+    // Password matching validation
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = this.value;
+        
+        if (password !== confirmPassword) {
+            this.setCustomValidity('Passwords do not match');
+            this.classList.add('is-invalid');
+        } else {
+            this.setCustomValidity('');
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    // Pre-select user type from URL parameter
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userType = urlParams.get('user_type');
+        
+        if (userType === 'farmer') {
+            document.getElementById('farmer').checked = true;
+            toggleFarmerFields();
+        }
+    });
+</script>
+{% endblock %}

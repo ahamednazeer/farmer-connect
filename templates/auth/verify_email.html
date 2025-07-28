@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg border-0">
+                    {% if verification_success %}
+                    <!-- Success State -->
+                    <div class="card-header bg-success text-white text-center py-4">
+                        <h3 class="mb-0"><i class="fas fa-check-circle"></i> Email Verified!</h3>
+                        <p class="mb-0 mt-2 opacity-75">Your account has been successfully verified</p>
+                    </div>
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle fa-5x text-success"></i>
+                        </div>
+                        <h4 class="text-success mb-3">Welcome to Farmer Connect!</h4>
+                        <p class="text-muted mb-4">
+                            Your email has been successfully verified. You can now access all features of your account.
+                        </p>
+                        
+                        {% if user_type %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Next Steps:</strong>
+                            {% if user_type == 'farmer' %}
+                            Complete your farmer profile and start listing your products.
+                            {% elif user_type == 'consumer' %}
+                            Browse fresh products from local farmers and place your first order.
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            {% if user_type == 'farmer' %}
+                            <a href="{{ url_for('farmer.dashboard') }}" class="btn btn-success btn-lg">
+                                <i class="fas fa-tachometer-alt"></i> Go to Farmer Dashboard
+                            </a>
+                            {% elif user_type == 'consumer' %}
+                            <a href="{{ url_for('consumer.dashboard') }}" class="btn btn-success btn-lg">
+                                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-success btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Login to Your Account
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-home"></i> Browse Products
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {% elif verification_error %}
+                    <!-- Error State -->
+                    <div class="card-header bg-danger text-white text-center py-4">
+                        <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Verification Failed</h3>
+                        <p class="mb-0 mt-2 opacity-75">Unable to verify your email</p>
+                    </div>
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-times-circle fa-5x text-danger"></i>
+                        </div>
+                        <h4 class="text-danger mb-3">Verification Link Invalid</h4>
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {{ error_message or 'The verification link is invalid or has expired.' }}
+                        </div>
+                        
+                        <p class="text-muted mb-4">
+                            This could happen if:
+                        </p>
+                        <ul class="list-unstyled text-muted text-start">
+                            <li><i class="fas fa-clock text-warning"></i> The link has expired (links are valid for 24 hours)</li>
+                            <li><i class="fas fa-check text-success"></i> Your email is already verified</li>
+                            <li><i class="fas fa-link text-info"></i> The link is malformed or incomplete</li>
+                            <li><i class="fas fa-ban text-danger"></i> The verification token is invalid</li>
+                        </ul>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="requestNewVerification()">
+                                <i class="fas fa-envelope"></i> Send New Verification Email
+                            </button>
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt"></i> Go to Login
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {% else %}
+                    <!-- Default/Loading State -->
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h3 class="mb-0"><i class="fas fa-envelope"></i> Email Verification</h3>
+                        <p class="mb-0 mt-2 opacity-75">Verifying your email address</p>
+                    </div>
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-spinner fa-spin fa-4x text-primary"></i>
+                        </div>
+                        <h4 class="mb-3">Verifying your email...</h4>
+                        <p class="text-muted">
+                            Please wait while we verify your email address.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Additional Help -->
+                <div class="text-center mt-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6><i class="fas fa-question-circle"></i> Need Help?</h6>
+                            <p class="text-muted mb-3">
+                                If you're having trouble with email verification, we're here to help.
+                            </p>
+                            <div class="row">
+                                <div class="col-6">
+                                    <a href="{{ url_for('contact') }}" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="fas fa-envelope"></i> Contact Support
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button" class="btn btn-sm btn-outline-info w-100" onclick="showFAQ()">
+                                        <i class="fas fa-question"></i> View FAQ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Verification Modal -->
+<div class="modal fade" id="verificationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-envelope"></i> Request New Verification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="requestVerificationForm">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" required 
+                               placeholder="Enter your registered email address">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        We'll send a new verification link to this email address.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendVerificationEmail()">
+                    <i class="fas fa-paper-plane"></i> Send Verification Email
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Modal -->
+<div class="modal fade" id="faqModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-question-circle"></i> Email Verification FAQ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq1">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                Why do I need to verify my email?
+                            </button>
+                        </h2>
+                        <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Email verification helps us ensure account security and enables us to send you important 
+                                notifications about your orders, account updates, and platform announcements. 
+                                It also helps prevent spam and unauthorized account creation.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq2">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                I didn't receive the verification email. What should I do?
+                            </button>
+                        </h2>
+                        <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Check your spam/junk folder</li>
+                                    <li>Make sure you entered the correct email address</li>
+                                    <li>Wait a few minutes as emails may be delayed</li>
+                                    <li>Request a new verification email</li>
+                                    <li>Contact support if the problem persists</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq3">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                                How long is the verification link valid?
+                            </button>
+                        </h2>
+                        <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Verification links are valid for 24 hours. After that, you'll need to request a new 
+                                verification email. This is a security measure to protect your account.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="faq4">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                                Can I use the platform without verifying my email?
+                            </button>
+                        </h2>
+                        <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Some features may be limited until you verify your email. For the best experience 
+                                and full access to all platform features, we recommend verifying your email as soon as possible.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function requestNewVerification() {
+    const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
+    modal.show();
+}
+
+function showFAQ() {
+    const modal = new bootstrap.Modal(document.getElementById('faqModal'));
+    modal.show();
+}
+
+function sendVerificationEmail() {
+    const email = document.getElementById('email').value;
+    
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
+    fetch(`{{ url_for('auth.resend_verification') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `email=${encodeURIComponent(email)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Verification email sent! Please check your inbox.');
+            bootstrap.Modal.getInstance(document.getElementById('verificationModal')).hide();
+        } else {
+            alert(data.message || 'Failed to send verification email');
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+// Auto-focus on email input when modal opens
+document.getElementById('verificationModal').addEventListener('shown.bs.modal', function() {
+    document.getElementById('email').focus();
+});
+
+// Handle Enter key in email field
+document.getElementById('email').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        sendVerificationEmail();
+    }
+});
+
+// Auto-verify if token is present in URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token && !{{ verification_success|tojson }} && !{{ verification_error|tojson }}) {
+        // Show loading state and verify token
+        fetch(`{{ url_for('auth.verify_email') }}?token=${token}`)
+        .then(response => response.text())
+        .then(html => {
+            document.body.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Verification error:', error);
+            location.reload();
+        });
+    }
+});
+</script>
+
+<style>
+.card {
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0;
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.list-unstyled li {
+    padding: 8px 0;
+    border-left: 3px solid transparent;
+    padding-left: 15px;
+    margin-bottom: 5px;
+}
+
+.list-unstyled li:hover {
+    background-color: #f8f9fa;
+    border-left-color: #007bff;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.accordion-button:not(.collapsed)::after {
+    filter: brightness(0) invert(1);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Alerts{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Inventory Alerts
+                    </h4>
+                    <a href="{{ url_for('farmer.inventory') }}" class="btn btn-secondary">
+                        <i class="fas fa-boxes"></i> Inventory Management
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Low Stock Alert -->
+                        <div class="col-md-4">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Low Stock ({{ low_stock|length }})
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if low_stock %}
+                                        {% for product in low_stock %}
+                                        <div class="alert alert-warning py-2 mb-2">
+                                            <strong>{{ product.name }}</strong><br>
+                                            <small>Only {{ product.quantity }} {{ product.unit }} left</small><br>
+                                            <small class="text-muted">{{ product.category }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">No low stock products</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Out of Stock Alert -->
+                        <div class="col-md-4">
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-times-circle"></i>
+                                        Out of Stock ({{ out_of_stock|length }})
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if out_of_stock %}
+                                        {% for product in out_of_stock %}
+                                        <div class="alert alert-danger py-2 mb-2">
+                                            <strong>{{ product.name }}</strong><br>
+                                            <small>Stock: 0 {{ product.unit }}</small><br>
+                                            <small class="text-muted">{{ product.category }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">No out of stock products</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Expiring Soon Alert -->
+                        <div class="col-md-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-clock"></i>
+                                        Expiring Soon ({{ expiring_soon|length }})
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if expiring_soon %}
+                                        {% for product in expiring_soon %}
+                                        <div class="alert alert-info py-2 mb-2">
+                                            <strong>{{ product.name }}</strong><br>
+                                            <small>Expires: {{ product.expiry_date|date_format }}</small><br>
+                                            <small class="text-muted">{{ product.category }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">No products expiring soon</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Alert Settings -->
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-cog"></i> Alert Settings
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted">Set up automatic alerts for your products to never miss critical inventory levels.</p>
+                                    
+                                    <button class="btn btn-primary" data-toggle="modal" data-target="#alertSetupModal">
+                                        <i class="fas fa-plus"></i> Setup New Alert
+                                    </button>
+                                    
+                                    {% if alert_settings %}
+                                    <div class="table-responsive mt-3">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Product</th>
+                                                    <th>Alert Type</th>
+                                                    <th>Threshold</th>
+                                                    <th>Status</th>
+                                                    <th>Last Alert</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for alert in alert_settings %}
+                                                <tr>
+                                                    <td>Product {{ alert.product_id }}</td>
+                                                    <td>
+                                                        <span class="badge badge-secondary">
+                                                            {{ alert.alert_type.replace('_', ' ')|title }}
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ alert.threshold_value }}</td>
+                                                    <td>
+                                                        <span class="badge {{ 'badge-success' if alert.is_active else 'badge-secondary' }}">
+                                                            {{ 'Active' if alert.is_active else 'Inactive' }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {{ alert.last_alerted|date_format if alert.last_alerted else 'Never' }}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Setup Modal -->
+<div class="modal fade" id="alertSetupModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Setup Inventory Alert</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="alertSetupForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Product</label>
+                        <select class="form-control" name="product_id" required>
+                            <option value="">Select Product</option>
+                            <!-- Products will be loaded via AJAX -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Alert Type</label>
+                        <select class="form-control" name="alert_type" required>
+                            <option value="">Select Alert Type</option>
+                            <option value="low_stock">Low Stock Alert</option>
+                            <option value="out_of_stock">Out of Stock Alert</option>
+                            <option value="expiring_soon">Expiring Soon Alert</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Threshold Value</label>
+                        <input type="number" class="form-control" name="threshold_value" 
+                               placeholder="e.g., 5 for low stock, 7 for expiring in days" required>
+                        <small class="form-text text-muted">
+                            For low stock: minimum quantity before alert<br>
+                            For expiring soon: number of days before expiry
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Setup Alert</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Setup alert form submission
+$('#alertSetupForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        product_id: $('select[name="product_id"]').val(),
+        alert_type: $('select[name="alert_type"]').val(),
+        threshold_value: $('input[name="threshold_value"]').val()
+    };
+    
+    $.ajax({
+        url: '{{ url_for("farmer.setup_inventory_alert") }}',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+            if (response.success) {
+                showAlert('success', response.message);
+                $('#alertSetupModal').modal('hide');
+                location.reload();
+            } else {
+                showAlert('danger', response.message);
+            }
+        },
+        error: function() {
+            showAlert('danger', 'Failed to setup alert');
+        }
+    });
+});
+
+// Load products when modal opens
+$('#alertSetupModal').on('shown.bs.modal', function() {
+    // You can load products via AJAX here
+    // For now, this is a placeholder
+});
+
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    $('body').prepend(alertHtml);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        $('.alert').alert('close');
+    }, 5000);
+}
+</script>
+{% endblock %}

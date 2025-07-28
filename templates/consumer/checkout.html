@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('consumer.cart') }}">Cart</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold">Checkout</h2>
+            <p class="text-muted">Complete your order</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Checkout Form -->
+        <div class="col-lg-8">
+            <form method="POST">
+                <!-- Delivery Information -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-shipping-fast"></i> Delivery Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="delivery_address" class="form-label">Delivery Address *</label>
+                                <textarea class="form-control" id="delivery_address" name="delivery_address" rows="3" 
+                                          placeholder="Enter your complete address" required>{{ user.location if user.location else '' }}</textarea>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="delivery_phone" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="delivery_phone" name="delivery_phone" 
+                                       value="{{ user.phone if user.phone else '' }}" required 
+                                       placeholder="Your contact number">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="delivery_type" class="form-label">Delivery Type *</label>
+                                <select class="form-select" id="delivery_type" name="delivery_type" required>
+                                    <option value="">Choose delivery type</option>
+                                    <option value="delivery">Home Delivery</option>
+                                    <option value="pickup">Pickup</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="delivery_date" class="form-label">Preferred Delivery Date</label>
+                                <input type="date" class="form-control" id="delivery_date" name="delivery_date">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="payment_method" class="form-label">Payment Method *</label>
+                                <select class="form-select" id="payment_method" name="payment_method" required>
+                                    <option value="">Choose payment method</option>
+                                    <option value="cod">Cash on Delivery</option>
+                                    <option value="upi">UPI Payment</option>
+                                    <option value="online">Online Payment</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="notes" class="form-label">Special Instructions (Optional)</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="2" 
+                                          placeholder="Any special instructions for delivery"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items Summary -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-shopping-basket"></i> Order Items ({{ cart_items|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for item in cart_items %}
+                        <div class="d-flex align-items-center py-3 {{ 'border-bottom' if not loop.last }}">
+                            <!-- Product Image -->
+                            <div class="flex-shrink-0 me-3">
+                                {% if item.image %}
+                                <img src="{{ url_for('static', filename=item.image) }}" 
+                                     class="rounded" alt="{{ item.name }}" style="width: 60px; height: 60px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Product Details -->
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ item.name }}</h6>
+                                <p class="text-muted small mb-1">
+                                    <i class="fas fa-store"></i> {{ item.farm_name }}
+                                </p>
+                                <p class="text-muted small mb-0">
+                                    {{ item.quantity }} {{ item.unit }} × {{ item.price|rupee }}
+                                </p>
+                            </div>
+                            
+                            <!-- Price -->
+                            <div class="flex-shrink-0">
+                                <h6 class="text-success mb-0">{{ item.subtotal|rupee }}</h6>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('consumer.cart') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Cart
+                    </a>
+                    <button type="submit" class="btn btn-success btn-lg flex-grow-1">
+                        <i class="fas fa-credit-card"></i> Place Order - {{ total|rupee }}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm sticky-top" style="top: 90px;">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-receipt"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Price Breakdown -->
+                    <div class="price-breakdown">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal ({{ cart_items|length }} items):</span>
+                            <span>{{ subtotal|rupee }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>
+                                Delivery Charges:
+                                {% if subtotal >= 1000 %}
+                                <small class="text-success">(Free above ₹1,000)</small>
+                                {% endif %}
+                            </span>
+                            <span class="{{ 'text-success' if delivery_charge == 0 else '' }}">
+                                {% if delivery_charge == 0 %}
+                                <s class="text-muted">₹50</s> FREE
+                                {% else %}
+                                {{ delivery_charge|rupee }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Total Amount:</strong>
+                            <strong class="text-success">{{ total|rupee }}</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Security -->
+                    <div class="payment-security p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="fas fa-shield-alt text-success"></i> Secure Payment</h6>
+                        <ul class="list-unstyled small text-muted mb-0">
+                            <li><i class="fas fa-check text-success"></i> 100% secure checkout</li>
+                            <li><i class="fas fa-check text-success"></i> Multiple payment options</li>
+                            <li><i class="fas fa-check text-success"></i> Order tracking available</li>
+                            <li><i class="fas fa-check text-success"></i> Easy returns & refunds</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set minimum date for delivery to tomorrow
+    document.getElementById('delivery_date').setAttribute('min', 
+        new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0]
+    );
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const deliveryType = document.getElementById('delivery_type').value;
+        const paymentMethod = document.getElementById('payment_method').value;
+        const deliveryAddress = document.getElementById('delivery_address').value.trim();
+        const deliveryPhone = document.getElementById('delivery_phone').value.trim();
+        
+        if (!deliveryAddress || !deliveryPhone || !deliveryType || !paymentMethod) {
+            e.preventDefault();
+            showToast('error', 'Please fill in all required fields');
+            return false;
+        }
+        
+        // Phone validation
+        const phoneRegex = /^[6-9]\d{9}$/;
+        if (!phoneRegex.test(deliveryPhone)) {
+            e.preventDefault();
+            showToast('error', 'Please enter a valid 10-digit phone number');
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Update delivery charge based on delivery type
+    document.getElementById('delivery_type').addEventListener('change', function() {
+        const deliveryType = this.value;
+        // This could be enhanced to dynamically update charges based on delivery type
+    });
+</script>
+{% endblock %}

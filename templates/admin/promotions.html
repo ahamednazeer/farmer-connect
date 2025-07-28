@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}Promotions Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Promotions</h6>
+                            <h3 class="mb-0">{{ stats.total_promotions }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-tags fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Active Promotions</h6>
+                            <h3 class="mb-0">{{ stats.active_promotions }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Usage</h6>
+                            <h3 class="mb-0">{{ stats.total_usage }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Savings</h6>
+                            <h3 class="mb-0">{{ stats.total_savings|rupee }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-percentage fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-tags"></i> Promotions Management</h4>
+                        <a href="{{ url_for('admin.add_promotion') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-plus"></i> Add Promotion
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filters -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select class="form-select" id="statusFilter" onchange="applyFilters()">
+                                <option value="">All Status</option>
+                                <option value="active" {% if current_status == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                <option value="expired" {% if current_status == 'expired' %}selected{% endif %}>Expired</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="typeFilter" onchange="applyFilters()">
+                                <option value="">All Types</option>
+                                <option value="percentage" {% if current_type == 'percentage' %}selected{% endif %}>Percentage</option>
+                                <option value="fixed" {% if current_type == 'fixed' %}selected{% endif %}>Fixed Amount</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Search promotions..." value="{{ current_search or '' }}"
+                                   onkeyup="debounceSearch()">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Promotion Details</th>
+                                    <th>Discount</th>
+                                    <th>Validity</th>
+                                    <th>Usage</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for promotion in promotions %}
+                                <tr>
+                                    <td>{{ promotion.id }}</td>
+                                    <td>
+                                        <div>
+                                            <h6 class="mb-1">{{ promotion.title }}</h6>
+                                            {% if promotion.description %}
+                                            <small class="text-muted">{{ promotion.description[:100] }}{% if promotion.description|length > 100 %}...{% endif %}</small>
+                                            {% endif %}
+                                            {% if promotion.promo_code %}
+                                            <br><span class="badge bg-secondary">{{ promotion.promo_code }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if promotion.discount_type == 'percentage' %}
+                                        <span class="badge bg-success">{{ promotion.discount_value }}%</span>
+                                        {% else %}
+                                        <span class="badge bg-info">{{ promotion.discount_value|rupee }}</span>
+                                        {% endif %}
+                                        {% if promotion.min_amount %}
+                                        <br><small class="text-muted">Min: {{ promotion.min_amount|rupee }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">From:</small> {{ promotion.start_date|date_format }}<br>
+                                        <small class="text-muted">To:</small> {{ promotion.end_date|date_format }}
+                                        {% set days_left = (promotion.end_date|date_diff_days) %}
+                                        {% if days_left >= 0 and days_left <= 7 %}
+                                        <br><small class="text-warning">{{ days_left }} days left</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-center">
+                                            <strong>{{ promotion.used_count or 0 }}</strong>
+                                            {% if promotion.usage_limit %}
+                                            / {{ promotion.usage_limit }}
+                                            {% endif %}
+                                            {% if promotion.usage_limit %}
+                                            <div class="progress mt-1" style="height: 4px;">
+                                                {% set usage_percent = ((promotion.used_count or 0) / promotion.usage_limit * 100)|round %}
+                                                <div class="progress-bar bg-info" style="width: {{ usage_percent }}%"></div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if promotion.is_active and promotion.start_date <= today and promotion.end_date >= today %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% elif not promotion.is_active %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% elif promotion.start_date > today %}
+                                        <span class="badge bg-warning">Scheduled</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Expired</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    onclick="viewPromotion({{ promotion.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="{{ url_for('admin.edit_promotion', promotion_id=promotion.id) }}" 
+                                               class="btn btn-outline-success">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-warning" 
+                                                    onclick="togglePromotion({{ promotion.id }}, {{ promotion.is_active|tojson }})">
+                                                {% if promotion.is_active %}
+                                                <i class="fas fa-pause"></i>
+                                                {% else %}
+                                                <i class="fas fa-play"></i>
+                                                {% endif %}
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    onclick="deletePromotion({{ promotion.id }}, '{{ promotion.title }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if not promotions %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No promotions found</h5>
+                        <p class="text-muted">Start by creating your first promotion to attract customers.</p>
+                        <a href="{{ url_for('admin.add_promotion') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add First Promotion
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Promotion Details Modal -->
+<div class="modal fade" id="promotionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Promotion Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="promotionDetails">
+                <!-- Promotion details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    const status = document.getElementById('statusFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const search = document.getElementById('searchInput').value;
+    
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (type) params.set('type', type);
+    if (search) params.set('search', search);
+    
+    window.location.search = params.toString();
+}
+
+function clearFilters() {
+    window.location.search = '';
+}
+
+let searchTimeout;
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        applyFilters();
+    }, 500);
+}
+
+function viewPromotion(id) {
+    fetch(`{{ url_for('admin.get_promotion_details') }}?id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const promo = data.promotion;
+                document.getElementById('promotionDetails').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4>${promo.title}</h4>
+                            <p class="text-muted">${promo.description || 'No description'}</p>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6>Discount Type:</h6>
+                                    <p>${promo.discount_type === 'percentage' ? 'Percentage' : 'Fixed Amount'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Discount Value:</h6>
+                                    <p>${promo.discount_type === 'percentage' ? promo.discount_value + '%' : '₹' + promo.discount_value}</p>
+                                </div>
+                            </div>
+                            
+                            ${promo.min_amount ? 
+                                `<div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <h6>Minimum Purchase:</h6>
+                                        <p>₹${promo.min_amount}</p>
+                                    </div>
+                                </div>` : ''
+                            }
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6>Start Date:</h6>
+                                    <p>${new Date(promo.start_date).toLocaleDateString()}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>End Date:</h6>
+                                    <p>${new Date(promo.end_date).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            
+                            ${promo.promo_code ? 
+                                `<div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <h6>Promo Code:</h6>
+                                        <p><code>${promo.promo_code}</code></p>
+                                    </div>
+                                </div>` : ''
+                            }
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Usage Statistics</h6>
+                                    <p class="card-text">
+                                        <strong>Times Used:</strong> ${promo.used_count || 0}<br>
+                                        ${promo.usage_limit ? `<strong>Usage Limit:</strong> ${promo.usage_limit}<br>` : ''}
+                                        <strong>Total Savings:</strong> ₹${promo.total_savings || 0}<br>
+                                        <strong>Status:</strong> 
+                                        ${promo.is_active ? 
+                                            '<span class="badge bg-success">Active</span>' : 
+                                            '<span class="badge bg-secondary">Inactive</span>'
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('promotionModal'));
+                modal.show();
+            } else {
+                alert('Failed to load promotion details');
+            }
+        });
+}
+
+function togglePromotion(id, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    if (confirm(`Are you sure you want to ${action} this promotion?`)) {
+        fetch(`{{ url_for('admin.toggle_promotion') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: id, is_active: !currentStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to update promotion status');
+            }
+        });
+    }
+}
+
+function deletePromotion(id, title) {
+    if (confirm(`Are you sure you want to delete the promotion "${title}"? This action cannot be undone.`)) {
+        fetch(`{{ url_for('admin.delete_promotion') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to delete promotion');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

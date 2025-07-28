@@ -1,0 +1,624 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - Farmer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-shopping-cart"></i> My Orders</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('farmer.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Orders</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="exportOrders()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Orders</h6>
+                            <h3 class="mb-0">{{ stats.total_orders or 0 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Pending Orders</h6>
+                            <h3 class="mb-0">{{ stats.pending_orders or 0 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Completed Orders</h6>
+                            <h3 class="mb-0">{{ stats.completed_orders or 0 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Revenue</h6>
+                            <h3 class="mb-0">{{ stats.total_revenue|rupee or "₹0" }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-rupee-sign fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Order History</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filters -->
+                    <div class="row mb-3">
+                        <div class="col-md-2">
+                            <select class="form-select" id="statusFilter" onchange="applyFilters()">
+                                <option value="">All Status</option>
+                                <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="confirmed" {% if current_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="shipped" {% if current_status == 'shipped' %}selected{% endif %}>Shipped</option>
+                                <option value="delivered" {% if current_status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="paymentFilter" onchange="applyFilters()">
+                                <option value="">All Payments</option>
+                                <option value="pending" {% if current_payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="paid" {% if current_payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                                <option value="failed" {% if current_payment_status == 'failed' %}selected{% endif %}>Failed</option>
+                                <option value="refunded" {% if current_payment_status == 'refunded' %}selected{% endif %}>Refunded</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="dateFrom" 
+                                   value="{{ date_from or '' }}" placeholder="From Date" onchange="applyFilters()">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="dateTo" 
+                                   value="{{ date_to or '' }}" placeholder="To Date" onchange="applyFilters()">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Search orders..." value="{{ current_search or '' }}"
+                                   onkeyup="debounceSearch()">
+                        </div>
+                    </div>
+
+                    {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Products</th>
+                                    <th>Quantity</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ order.order_id }}</strong>
+                                        {% if order.urgent %}
+                                        <br><span class="badge bg-danger">Urgent</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if order.customer_image %}
+                                            <img src="{{ url_for('static', filename=order.customer_image) }}" 
+                                                 class="rounded-circle me-2" width="32" height="32" alt="Customer">
+                                            {% else %}
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-white" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ order.customer_name }}</strong>
+                                                <br><small class="text-muted">{{ order.customer_location or 'Location not provided' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% for item in order.items %}
+                                        <div class="mb-1">
+                                            <small><strong>{{ item.product_name }}</strong></small>
+                                        </div>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% for item in order.items %}
+                                        <div class="mb-1">
+                                            <small>{{ item.quantity }} {{ item.unit }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ order.farmer_amount|rupee }}</strong>
+                                        <br><small class="text-muted">Total: {{ order.total_amount|rupee }}</small>
+                                    </td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% elif order.status == 'confirmed' %}
+                                        <span class="badge bg-info">Confirmed</span>
+                                        {% elif order.status == 'shipped' %}
+                                        <span class="badge bg-primary">Shipped</span>
+                                        {% elif order.status == 'delivered' %}
+                                        <span class="badge bg-success">Delivered</span>
+                                        {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.payment_status == 'pending' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                        {% elif order.payment_status == 'paid' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle"></i> Paid
+                                        </span>
+                                        {% elif order.payment_status == 'failed' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle"></i> Failed
+                                        </span>
+                                        {% elif order.payment_status == 'refunded' %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-undo"></i> Refunded
+                                        </span>
+                                        {% endif %}
+                                        {% if order.payment_method %}
+                                        <br><small class="text-muted">{{ order.payment_method }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ order.created_at|date_format }}
+                                        <br><small class="text-muted">{{ order.created_at|date_format('%I:%M %p') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    onclick="viewOrderDetails({{ order.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if order.status == 'pending' %}
+                                            <button type="button" class="btn btn-outline-success" 
+                                                    onclick="updateOrderStatus({{ order.id }}, 'confirmed')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    onclick="updateOrderStatus({{ order.id }}, 'cancelled')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            {% elif order.status == 'confirmed' %}
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    onclick="updateOrderStatus({{ order.id }}, 'shipped')">
+                                                <i class="fas fa-shipping-fast"></i>
+                                            </button>
+                                            {% elif order.status == 'shipped' %}
+                                            <button type="button" class="btn btn-outline-success" 
+                                                    onclick="updateOrderStatus({{ order.id }}, 'delivered')">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                            {% endif %}
+                                            
+                                            {% if order.payment_status == 'pending' and order.status in ['confirmed', 'shipped', 'delivered'] %}
+                                            <button type="button" class="btn btn-outline-warning" 
+                                                    onclick="confirmPayment({{ order.id }})" 
+                                                    title="Confirm Payment Received">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if pagination and pagination.pages > 1 %}
+                    <nav aria-label="Orders pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('farmer.orders', page=pagination.prev_num, **request.args) }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in pagination.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != pagination.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('farmer.orders', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('farmer.orders', page=pagination.next_num, **request.args) }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Orders Yet</h4>
+                        <p class="text-muted">You haven't received any orders for your products yet.</p>
+                        <a href="{{ url_for('farmer.products') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add More Products
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+                <!-- Order details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Confirmation Modal -->
+<div class="modal fade" id="paymentConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-money-bill-wave"></i> Confirm Payment Received
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="paymentConfirmForm">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Please confirm that you have received payment for this order.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">Payment Method</label>
+                        <select class="form-select" id="paymentMethod" name="payment_method" required>
+                            <option value="">Select payment method</option>
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Card">Card</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="paymentNotes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="paymentNotes" name="notes" rows="3" 
+                                  placeholder="Any additional notes about the payment..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Confirm Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    const status = document.getElementById('statusFilter').value;
+    const paymentStatus = document.getElementById('paymentFilter').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    const search = document.getElementById('searchInput').value;
+    
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (paymentStatus) params.set('payment_status', paymentStatus);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    if (search) params.set('search', search);
+    
+    window.location.search = params.toString();
+}
+
+let searchTimeout;
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        applyFilters();
+    }, 500);
+}
+
+function viewOrderDetails(orderId) {
+    fetch(`/farmer/api/orders/details?id=${orderId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const order = data.order;
+                document.getElementById('orderDetailsContent').innerHTML = generateOrderDetailsHTML(order);
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+                modal.show();
+            } else {
+                alert(`Failed to load order details: ${data.message || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching order details:', error);
+            alert('Failed to load order details: Network error');
+        });
+}
+
+function generateOrderDetailsHTML(order) {
+    let itemsHTML = '';
+    order.items.forEach(item => {
+        itemsHTML += `
+            <tr>
+                <td>
+                    ${item.product_image ? 
+                        `<img src="${item.product_image}" class="rounded me-2" width="40" height="40">` :
+                        `<div class="bg-light rounded d-inline-block me-2" style="width:40px;height:40px;"><i class="fas fa-image text-muted"></i></div>`
+                    }
+                    ${item.product_name}
+                </td>
+                <td>${item.quantity} ${item.unit}</td>
+                <td>₹${item.price}</td>
+                <td><strong>₹${item.total}</strong></td>
+            </tr>
+        `;
+    });
+
+    return `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Order Information</h6>
+                <table class="table table-borderless table-sm">
+                    <tr><td><strong>Order ID:</strong></td><td>#${order.order_id}</td></tr>
+                    <tr><td><strong>Status:</strong></td><td><span class="badge bg-${getStatusColor(order.status)}">${order.status}</span></td></tr>
+                    <tr><td><strong>Order Date:</strong></td><td>${new Date(order.created_at).toLocaleDateString()}</td></tr>
+                    <tr><td><strong>Payment Status:</strong></td><td><span class="badge bg-${order.payment_status === 'paid' ? 'success' : 'warning'}">${order.payment_status}</span></td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Customer Information</h6>
+                <table class="table table-borderless table-sm">
+                    <tr><td><strong>Name:</strong></td><td>${order.customer_name}</td></tr>
+                    <tr><td><strong>Email:</strong></td><td>${order.customer_email}</td></tr>
+                    <tr><td><strong>Phone:</strong></td><td>${order.customer_phone || 'Not provided'}</td></tr>
+                    <tr><td><strong>Address:</strong></td><td>${order.delivery_address}</td></tr>
+                </table>
+            </div>
+        </div>
+        <hr>
+        <h6>Order Items</h6>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3">Your Earnings:</th>
+                        <th>₹${order.farmer_amount}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    `;
+}
+
+function getStatusColor(status) {
+    switch(status) {
+        case 'pending': return 'warning';
+        case 'confirmed': return 'info';
+        case 'shipped': return 'primary';
+        case 'delivered': return 'success';
+        case 'cancelled': return 'danger';
+        default: return 'secondary';
+    }
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    if (confirm(`Are you sure you want to mark this order as ${newStatus}?`)) {
+        fetch(`/farmer/orders/update-status/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({
+                status: newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to update order status');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating order status:', error);
+            alert('Failed to update order status. Please try again.');
+        });
+    }
+}
+
+function exportOrders() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'true');
+    window.location.href = `/farmer/orders?${params.toString()}`;
+}
+
+let currentOrderId = null;
+
+function confirmPayment(orderId) {
+    currentOrderId = orderId;
+    const modal = new bootstrap.Modal(document.getElementById('paymentConfirmModal'));
+    modal.show();
+}
+
+// Handle payment confirmation form submission
+document.getElementById('paymentConfirmForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!currentOrderId) {
+        alert('No order selected');
+        return;
+    }
+    
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // Disable submit button and show loading
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirming...';
+    
+    fetch(`/farmer/orders/${currentOrderId}/confirm-payment`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentConfirmModal'));
+            modal.hide();
+            
+            // Show success message
+            alert(data.message || 'Payment confirmed successfully!');
+            
+            // Reload page to update the order status
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to confirm payment');
+        }
+    })
+    .catch(error => {
+        console.error('Error confirming payment:', error);
+        alert('Failed to confirm payment. Please try again.');
+    })
+    .finally(() => {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+
+// Reset form when modal is hidden
+document.getElementById('paymentConfirmModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('paymentConfirmForm').reset();
+    currentOrderId = null;
+});
+</script>
+{% endblock %}

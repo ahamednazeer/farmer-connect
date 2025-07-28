@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Earnings Report - {{ period.title() }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-line"></i> 
+                        Earnings Report - {{ period.title() }}
+                    </h4>
+                    <div>
+                        <a href="{{ url_for('farmer.export_earnings', format='csv', period=period) }}" 
+                           class="btn btn-success btn-sm">
+                            <i class="fas fa-download"></i> Export CSV
+                        </a>
+                        <a href="{{ url_for('farmer.earnings') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ total_earnings|rupee }}</h5>
+                                    <p class="mb-0">Total Earnings</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ total_orders }}</h5>
+                                    <p class="mb-0">Total Orders</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ total_items_sold }}</h5>
+                                    <p class="mb-0">Items Sold</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ (total_earnings / total_orders)|round(2)|rupee if total_orders > 0 else '₹0' }}</h5>
+                                    <p class="mb-0">Avg. Order Value</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Breakdown -->
+                    {% if category_stats %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>Category Breakdown</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Earnings</th>
+                                            <th>Items Sold</th>
+                                            <th>Orders</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for category, stats in category_stats.items() %}
+                                        <tr>
+                                            <td>
+                                                <i class="{{ get_category_icon(category) }}"></i>
+                                                {{ category }}
+                                            </td>
+                                            <td>{{ stats.earnings|rupee }}</td>
+                                            <td>{{ stats.items_sold }}</td>
+                                            <td>{{ stats.orders }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Detailed Transactions -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>Detailed Transactions</h5>
+                            {% if earnings_data %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Order</th>
+                                            <th>Date</th>
+                                            <th>Product</th>
+                                            <th>Customer</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in earnings_data %}
+                                        <tr>
+                                            <td>{{ row.order_number }}</td>
+                                            <td>{{ row.created_at|date_format }}</td>
+                                            <td>
+                                                {{ row.product_name }}
+                                                <br><small class="text-muted">{{ row.category }}</small>
+                                            </td>
+                                            <td>{{ row.consumer_name }}</td>
+                                            <td>{{ row.quantity }} {{ row.unit }}</td>
+                                            <td>{{ row.price|rupee }}</td>
+                                            <td>{{ row.subtotal|rupee }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                No earnings data found for the selected period.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Print functionality
+function printReport() {
+    window.print();
+}
+</script>
+{% endblock %}

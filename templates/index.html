@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Farmer Connect{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4 fw-bold mb-4">Fresh Farm to Your Table</h1>
+                <p class="lead mb-4">Connect directly with local farmers and get the freshest produce delivered to your doorstep. Support local agriculture while enjoying organic, healthy food.</p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('products') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-shopping-basket"></i> Shop Now
+                    </a>
+                    {% if not session.user_id %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-user-plus"></i> Join Us
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 text-center">
+                <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=500&h=400&fit=crop" 
+                     alt="Fresh Vegetables" class="img-fluid rounded-3 shadow-lg">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="fw-bold">Why Choose Farmer Connect?</h2>
+                <p class="text-muted">Connecting farmers and consumers for a better food ecosystem</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="category-icon mx-auto">
+                        <i class="fas fa-seedling fa-2x"></i>
+                    </div>
+                    <h4>Fresh & Organic</h4>
+                    <p class="text-muted">Direct from farms to your table, ensuring maximum freshness and nutritional value.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="category-icon mx-auto" style="background-color: #17a2b8;">
+                        <i class="fas fa-handshake fa-2x"></i>
+                    </div>
+                    <h4>Support Farmers</h4>
+                    <p class="text-muted">Help local farmers by buying directly, eliminating middlemen and ensuring fair prices.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="category-icon mx-auto" style="background-color: #ffc107;">
+                        <i class="fas fa-truck fa-2x"></i>
+                    </div>
+                    <h4>Fast Delivery</h4>
+                    <p class="text-muted">Quick delivery or convenient pickup options to get your fresh produce on time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+{% if categories %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="fw-bold">Shop by Category</h2>
+                <p class="text-muted">Explore our wide range of fresh produce categories</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% for category in categories[:6] %}
+            <div class="col-md-4 col-lg-2">
+                <a href="{{ url_for('products', category=category.category) }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm text-center category-card">
+                        <div class="card-body">
+                            <div class="category-icon mx-auto mb-3" style="width: 50px; height: 50px;">
+                                <i class="{{ get_category_icon(category.category) }}"></i>
+                            </div>
+                            <h6 class="card-title">{{ category.category }}</h6>
+                            <small class="text-muted">{{ category.product_count }} products</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('products') }}" class="btn btn-primary">
+                <i class="fas fa-eye"></i> View All Categories
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Products Section -->
+{% if featured_products %}
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="fw-bold">Featured Products</h2>
+                <p class="text-muted">Fresh picks from our verified farmers</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in featured_products %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card product-card border-0 shadow-sm h-100">
+                    {% if product.image %}
+                    <img src="{{ url_for('static', filename=product.image) }}" 
+                         class="card-img-top product-image" alt="{{ product.name }}">
+                    {% else %}
+                    <div class="card-img-top product-image d-flex align-items-center justify-content-center bg-light">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h6 class="card-title">{{ product.name }}</h6>
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-store"></i> {{ product.farm_name }}
+                        </p>
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-map-marker-alt"></i> {{ product.location }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="text-primary mb-0">{{ product.price|rupee }}/{{ product.unit }}</h5>
+                                {% if product.organic %}
+                                <span class="badge bg-success">Organic</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ product.quantity }} {{ product.unit }} left</small>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                               class="btn btn-outline-primary btn-sm flex-grow-1">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            {% if session.user_type == 'consumer' %}
+                            <button class="btn btn-primary btn-sm flex-grow-1" 
+                                    onclick="addToCart({{ product.id }})">
+                                <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('products') }}" class="btn btn-primary">
+                <i class="fas fa-shopping-basket"></i> View All Products
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Stats Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon mx-auto">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <h3>500+</h3>
+                    <p>Happy Customers</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon mx-auto">
+                        <i class="fas fa-tractor fa-2x"></i>
+                    </div>
+                    <h3>100+</h3>
+                    <p>Verified Farmers</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon mx-auto">
+                        <i class="fas fa-shopping-basket fa-2x"></i>
+                    </div>
+                    <h3>1000+</h3>
+                    <p>Fresh Products</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon mx-auto">
+                        <i class="fas fa-truck fa-2x"></i>
+                    </div>
+                    <h3>50+</h3>
+                    <p>Cities Served</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="fw-bold">How It Works</h2>
+                <p class="text-muted">Simple steps to get fresh produce delivered</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px; margin-bottom: 1rem;">
+                        <h3>1</h3>
+                    </div>
+                    <h4>Browse Products</h4>
+                    <p class="text-muted">Explore fresh produce from verified local farmers in your area.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px; margin-bottom: 1rem;">
+                        <h3>2</h3>
+                    </div>
+                    <h4>Place Order</h4>
+                    <p class="text-muted">Add items to cart and place your order with secure payment options.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px; margin-bottom: 1rem;">
+                        <h3>3</h3>
+                    </div>
+                    <h4>Get Delivered</h4>
+                    <p class="text-muted">Receive fresh produce at your doorstep or schedule a convenient pickup.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not session.user_id %}
+<section class="py-5 bg-light">
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="fw-bold mb-3">Ready to Get Started?</h2>
+                <p class="lead mb-4">Join thousands of customers who trust Farmer Connect for fresh, organic produce.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('auth.register') }}?user_type=consumer" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> Register as Consumer
+                    </a>
+                    <a href="{{ url_for('auth.register') }}?user_type=farmer" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-tractor"></i> Register as Farmer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animation for stats counter
+    document.addEventListener('DOMContentLoaded', function() {
+        const statsSection = document.querySelector('.stats-card');
+        if (statsSection) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateNumbers();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+            
+            observer.observe(statsSection);
+        }
+    });
+    
+    function animateNumbers() {
+        const numbers = document.querySelectorAll('.stats-card h3');
+        numbers.forEach(number => {
+            const target = parseInt(number.textContent.replace('+', ''));
+            let current = 0;
+            const increment = target / 100;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                number.textContent = Math.floor(current) + '+';
+            }, 20);
+        });
+    }
+</script>
+{% endblock %}

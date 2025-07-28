@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Analytics - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Reports Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-chart-bar"></i> Reports & Analytics</h4>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" id="dateRange" onchange="updateDateRange()">
+                                <option value="today" {% if date_range == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if date_range == 'week' %}selected{% endif %}>This Week</option>
+                                <option value="month" {% if date_range == 'month' %}selected{% endif %}>This Month</option>
+                                <option value="quarter" {% if date_range == 'quarter' %}selected{% endif %}>This Quarter</option>
+                                <option value="year" {% if date_range == 'year' %}selected{% endif %}>This Year</option>
+                                <option value="custom" {% if date_range == 'custom' %}selected{% endif %}>Custom Range</option>
+                            </select>
+                            <button class="btn btn-light btn-sm" onclick="exportReport()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" id="customDateRange" style="display: {% if date_range == 'custom' %}block{% else %}none{% endif %};">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">From Date</label>
+                            <input type="date" class="form-control form-control-sm" id="fromDate" value="{{ from_date or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">To Date</label>
+                            <input type="date" class="form-control form-control-sm" id="toDate" value="{{ to_date or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary btn-sm d-block" onclick="applyCustomRange()">
+                                <i class="fas fa-filter"></i> Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Revenue</h6>
+                            <h3 class="mb-0">{{ metrics.total_revenue|rupee }}</h3>
+                            {% if metrics.revenue_growth %}
+                            <small class="opacity-75">
+                                {% if metrics.revenue_growth > 0 %}
+                                <i class="fas fa-arrow-up"></i> +{{ metrics.revenue_growth }}%
+                                {% else %}
+                                <i class="fas fa-arrow-down"></i> {{ metrics.revenue_growth }}%
+                                {% endif %}
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-rupee-sign fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Orders</h6>
+                            <h3 class="mb-0">{{ metrics.total_orders }}</h3>
+                            {% if metrics.orders_growth %}
+                            <small class="opacity-75">
+                                {% if metrics.orders_growth > 0 %}
+                                <i class="fas fa-arrow-up"></i> +{{ metrics.orders_growth }}%
+                                {% else %}
+                                <i class="fas fa-arrow-down"></i> {{ metrics.orders_growth }}%
+                                {% endif %}
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">New Customers</h6>
+                            <h3 class="mb-0">{{ metrics.new_customers }}</h3>
+                            {% if metrics.customers_growth %}
+                            <small class="opacity-75">
+                                {% if metrics.customers_growth > 0 %}
+                                <i class="fas fa-arrow-up"></i> +{{ metrics.customers_growth }}%
+                                {% else %}
+                                <i class="fas fa-arrow-down"></i> {{ metrics.customers_growth }}%
+                                {% endif %}
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-plus fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Avg Order Value</h6>
+                            <h3 class="mb-0">{{ metrics.avg_order_value|rupee }}</h3>
+                            {% if metrics.aov_growth %}
+                            <small class="opacity-75">
+                                {% if metrics.aov_growth > 0 %}
+                                <i class="fas fa-arrow-up"></i> +{{ metrics.aov_growth }}%
+                                {% else %}
+                                <i class="fas fa-arrow-down"></i> {{ metrics.aov_growth }}%
+                                {% endif %}
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-line"></i> Revenue Trend</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Order Status Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Reports -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-users"></i> Top Customers</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Orders</th>
+                                    <th>Total Spent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in top_customers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if customer.profile_image %}
+                                            <img src="{{ url_for('static', filename=customer.profile_image) }}" 
+                                                 class="rounded-circle me-2" width="32" height="32" alt="Profile">
+                                            {% else %}
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-white" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ customer.full_name }}</strong>
+                                                <br><small class="text-muted">{{ customer.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ customer.order_count }}</td>
+                                    <td><strong>{{ customer.total_spent|rupee }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-seedling"></i> Top Farmers</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Farmer</th>
+                                    <th>Products</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for farmer in top_farmers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if farmer.profile_image %}
+                                            <img src="{{ url_for('static', filename=farmer.profile_image) }}" 
+                                                 class="rounded-circle me-2" width="32" height="32" alt="Profile">
+                                            {% else %}
+                                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-white" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ farmer.full_name }}</strong>
+                                                <br><small class="text-muted">{{ farmer.farm_name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ farmer.product_count }}</td>
+                                    <td><strong>{{ farmer.total_revenue|rupee }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Performance -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-apple-alt"></i> Product Performance</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Farmer</th>
+                                    <th>Units Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Avg Rating</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in product_performance %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if product.image %}
+                                            <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                                 class="rounded me-2" width="40" height="40" alt="Product">
+                                            {% else %}
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ product.name }}</strong>
+                                                <br><small class="text-muted">{{ product.price|rupee }}/{{ product.unit }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ product.category }}</td>
+                                    <td>{{ product.farmer_name }}</td>
+                                    <td>{{ product.units_sold }}</td>
+                                    <td><strong>{{ product.revenue|rupee }}</strong></td>
+                                    <td>
+                                        {% if product.avg_rating %}
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-1">{{ "%.1f"|format(product.avg_rating) }}</span>
+                                            <div class="text-warning">
+                                                {% for i in range(1, 6) %}
+                                                    {% if i <= product.avg_rating %}
+                                                    <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                    <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">No ratings</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if product.performance_score >= 80 %}
+                                        <span class="badge bg-success">Excellent</span>
+                                        {% elif product.performance_score >= 60 %}
+                                        <span class="badge bg-warning">Good</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Needs Improvement</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Revenue Trend Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: {{ revenue_chart_labels|tojson }},
+        datasets: [{
+            label: 'Revenue',
+            data: {{ revenue_chart_data|tojson }},
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '₹' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Order Status Chart
+const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ order_status_labels|tojson }},
+        datasets: [{
+            data: {{ order_status_data|tojson }},
+            backgroundColor: [
+                '#ffc107',
+                '#17a2b8',
+                '#007bff',
+                '#28a745',
+                '#dc3545'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+function updateDateRange() {
+    const range = document.getElementById('dateRange').value;
+    const customDiv = document.getElementById('customDateRange');
+    
+    if (range === 'custom') {
+        customDiv.style.display = 'block';
+    } else {
+        customDiv.style.display = 'none';
+        // Redirect with new date range
+        const params = new URLSearchParams(window.location.search);
+        params.set('range', range);
+        window.location.search = params.toString();
+    }
+}
+
+function applyCustomRange() {
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    
+    if (!fromDate || !toDate) {
+        alert('Please select both from and to dates');
+        return;
+    }
+    
+    if (new Date(fromDate) > new Date(toDate)) {
+        alert('From date cannot be after to date');
+        return;
+    }
+    
+    const params = new URLSearchParams();
+    params.set('range', 'custom');
+    params.set('from_date', fromDate);
+    params.set('to_date', toDate);
+    window.location.search = params.toString();
+}
+
+function exportReport() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'true');
+    window.location.href = `{{ url_for('admin.reports') }}?${params.toString()}`;
+}
+</script>
+{% endblock %}

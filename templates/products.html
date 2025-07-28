@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Products - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">Fresh Products</h2>
+            <p class="text-muted">Discover fresh produce from verified local farmers</p>
+        </div>
+    </div>
+    
+    <!-- Filters and Search -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="filter-sidebar">
+                <h5>Filters</h5>
+                
+                <!-- Search -->
+                <div class="filter-group">
+                    <h6>Search</h6>
+                    <form method="GET">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="search" 
+                                   value="{{ current_search or '' }}" placeholder="Search products...">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <!-- Preserve other filters -->
+                        {% if current_category %}
+                        <input type="hidden" name="category" value="{{ current_category }}">
+                        {% endif %}
+                        {% if current_location %}
+                        <input type="hidden" name="location" value="{{ current_location }}">
+                        {% endif %}
+                        {% if current_sort %}
+                        <input type="hidden" name="sort_by" value="{{ current_sort }}">
+                        {% endif %}
+                    </form>
+                </div>
+                
+                <!-- Category Filter -->
+                {% if categories %}
+                <div class="filter-group">
+                    <h6>Category</h6>
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('products', search=current_search, location=current_location, sort_by=current_sort) }}" 
+                           class="list-group-item list-group-item-action {{ 'active' if not current_category else '' }}">
+                            All Categories
+                        </a>
+                        {% for category in categories %}
+                        <a href="{{ url_for('products', category=category.category, search=current_search, location=current_location, sort_by=current_sort) }}" 
+                           class="list-group-item list-group-item-action {{ 'active' if current_category == category.category else '' }}">
+                            {{ category.category }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Location Filter -->
+                {% if locations %}
+                <div class="filter-group">
+                    <h6>Location</h6>
+                    <select class="form-select" onchange="filterByLocation(this.value)">
+                        <option value="">All Locations</option>
+                        {% for location in locations %}
+                        <option value="{{ location.location }}" {{ 'selected' if current_location == location.location else '' }}>
+                            {{ location.location }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <!-- Clear Filters -->
+                {% if current_category or current_location or current_search %}
+                <div class="filter-group">
+                    <a href="{{ url_for('products') }}" class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- Sort and Results Count -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <span class="text-muted">{{ products|length }} products found</span>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" style="width: auto;" onchange="sortProducts(this.value)">
+                        <option value="newest" {{ 'selected' if current_sort == 'newest' else '' }}>Newest First</option>
+                        <option value="price_low" {{ 'selected' if current_sort == 'price_low' else '' }}>Price: Low to High</option>
+                        <option value="price_high" {{ 'selected' if current_sort == 'price_high' else '' }}>Price: High to Low</option>
+                        <option value="name" {{ 'selected' if current_sort == 'name' else '' }}>Name: A to Z</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Products Grid -->
+            {% if products %}
+            <div class="row g-4">
+                {% for product in products %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card product-card border-0 shadow-sm h-100">
+                        <!-- Product Image -->
+                        <div class="position-relative">
+                            {% if product.image %}
+                            <img src="{{ url_for('static', filename=product.image) }}" 
+                                 class="card-img-top product-image" alt="{{ product.name }}">
+                            {% else %}
+                            <div class="card-img-top product-image d-flex align-items-center justify-content-center bg-light">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Badges -->
+                            {% if product.organic %}
+                            <span class="badge bg-success product-badge">Organic</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Product Info -->
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-store"></i> {{ product.farm_name }}
+                            </p>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt"></i> {{ product.location }}
+                            </p>
+                            
+                            {% if product.description %}
+                            <p class="card-text text-muted small">
+                                {{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <!-- Price and Stock -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="text-primary mb-0">{{ product.price|rupee }}/{{ product.unit }}</h5>
+                                    <small class="text-muted">{{ product.quantity }} {{ product.unit }} available</small>
+                                </div>
+                                <span class="badge bg-light text-dark">{{ product.category }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="card-footer bg-white border-0">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                                   class="btn btn-outline-primary btn-sm flex-grow-1">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                {% if session.user_type == 'consumer' %}
+                                <button class="btn btn-primary btn-sm" 
+                                        onclick="addToCart({{ product.id }})"
+                                        {{ 'disabled' if product.quantity <= 0 else '' }}>
+                                    <i class="fas fa-cart-plus"></i>
+                                    {% if product.quantity <= 0 %}Out of Stock{% else %}Add to Cart{% endif %}
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h4>No Products Found</h4>
+                <p>Try adjusting your filters or search terms.</p>
+                <a href="{{ url_for('products') }}" class="btn btn-primary">
+                    <i class="fas fa-refresh"></i> View All Products
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterByLocation(location) {
+        const url = new URL(window.location);
+        if (location) {
+            url.searchParams.set('location', location);
+        } else {
+            url.searchParams.delete('location');
+        }
+        window.location.href = url.toString();
+    }
+    
+    function sortProducts(sortBy) {
+        const url = new URL(window.location);
+        url.searchParams.set('sort_by', sortBy);
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}

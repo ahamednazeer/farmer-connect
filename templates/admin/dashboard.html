@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Farmer Connect{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Admin Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">Admin Dashboard</h2>
+            <p class="text-muted">Platform overview and management</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="dashboard-metric">
+                <div class="metric-icon">
+                    <i class="fas fa-tractor"></i>
+                </div>
+                <div class="metric-value">{{ stats.total_farmers }}</div>
+                <div class="metric-label">Total Farmers</div>
+                {% if stats.pending_farmers > 0 %}
+                <div class="mt-2">
+                    <span class="badge bg-warning">{{ stats.pending_farmers }} Pending</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="dashboard-metric" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="metric-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-value">{{ stats.total_consumers }}</div>
+                <div class="metric-label">Total Consumers</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="dashboard-metric" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="metric-icon">
+                    <i class="fas fa-shopping-basket"></i>
+                </div>
+                <div class="metric-value">{{ stats.active_products }}</div>
+                <div class="metric-label">Active Products</div>
+                {% if stats.pending_products > 0 %}
+                <div class="mt-2">
+                    <span class="badge bg-warning">{{ stats.pending_products }} Pending</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="dashboard-metric" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="metric-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="metric-value">{{ stats.today_orders }}</div>
+                <div class="metric-label">Today's Orders</div>
+                <small class="opacity-75">Total: {{ stats.total_orders }}</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Revenue Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-rupee-sign"></i> Revenue Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-success">{{ stats.total_revenue|rupee }}</h4>
+                            <p class="text-muted mb-0">Total Revenue</p>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-primary">{{ stats.month_revenue|rupee }}</h4>
+                            <p class="text-muted mb-0">This Month</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Growth Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-info">{{ (stats.total_farmers + stats.total_consumers) }}</h4>
+                            <p class="text-muted mb-0">Total Users</p>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning">{{ stats.total_products }}</h4>
+                            <p class="text-muted mb-0">Total Products</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activities -->
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Recent Orders</h5>
+                    <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                    <div class="list-group list-group-flush">
+                        {% for order in recent_orders %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">Order #{{ order.order_number }}</h6>
+                                    <p class="mb-1 text-muted">{{ order.consumer_name }}</p>
+                                    <small class="text-muted">{{ order.created_at|date_format }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-success">{{ order.total_amount|rupee }}</h6>
+                                    <span class="badge bg-{{ 'success' if order.status == 'delivered' else 'primary' }}">
+                                        {{ order.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>No recent orders</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Farmers -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-tractor"></i> Recent Farmers</h5>
+                    <a href="{{ url_for('admin.farmers') }}" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_farmers %}
+                    <div class="list-group list-group-flush">
+                        {% for farmer in recent_farmers %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ farmer.full_name }}</h6>
+                                    <p class="mb-1 text-muted">{{ farmer.farm_name or 'Farm name not set' }}</p>
+                                    <small class="text-muted">{{ farmer.location }}</small>
+                                </div>
+                                <div>
+                                    {% if farmer.is_approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-user-plus fa-2x mb-2"></i>
+                        <p>No recent farmers</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Products -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-shopping-basket"></i> Recent Products</h5>
+                    <a href="{{ url_for('admin.products') }}" class="btn btn-sm btn-outline-info">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_products %}
+                    <div class="list-group list-group-flush">
+                        {% for product in recent_products %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ product.name }}</h6>
+                                    <p class="mb-1 text-muted">{{ product.farm_name }}</p>
+                                    <small class="text-muted">{{ product.price|rupee }}/{{ product.unit }}</small>
+                                </div>
+                                <div>
+                                    {% if product.is_approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-plus fa-2x mb-2"></i>
+                        <p>No recent products</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Growth Chart -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> User Growth (Last 6 Months)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="userGrowthChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.farmers', status='pending') }}" 
+                               class="btn btn-warning w-100">
+                                <i class="fas fa-user-check"></i> Approve Farmers
+                                {% if stats.pending_farmers > 0 %}
+                                <span class="badge bg-light text-dark ms-2">{{ stats.pending_farmers }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.products', status='pending') }}" 
+                               class="btn btn-info w-100">
+                                <i class="fas fa-check-circle"></i> Approve Products
+                                {% if stats.pending_products > 0 %}
+                                <span class="badge bg-light text-dark ms-2">{{ stats.pending_products }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.orders') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-shopping-bag"></i> Manage Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.analytics') }}" class="btn btn-success w-100">
+                                <i class="fas fa-chart-line"></i> View Analytics
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.contact_messages', status='unread') }}" 
+                               class="btn btn-warning w-100">
+                                <i class="fas fa-envelope"></i> Contact Messages
+                                {% if stats.unread_messages > 0 %}
+                                <span class="badge bg-light text-dark ms-2">{{ stats.unread_messages }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.send_announcement') }}" class="btn btn-info w-100">
+                                <i class="fas fa-bullhorn"></i> Send Announcement
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.promotions') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-tags"></i> Manage Promotions
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-cog"></i> Site Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // User Growth Chart
+    const ctx = document.getElementById('userGrowthChart').getContext('2d');
+    const monthlyData = {{ monthly_stats|tojson }};
+    
+    const labels = monthlyData.map(item => item.month);
+    const farmersData = monthlyData.map(item => item.farmers);
+    const consumersData = monthlyData.map(item => item.consumers);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Farmers',
+                data: farmersData,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Consumers',
+                data: consumersData,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
