@@ -2,8 +2,33 @@
 
 {% block title %}Farmer Dashboard - Farmer Connect{% endblock %}
 
+{% block extra_css %}
+<style>
+    .farmer-dashboard .metric-foreground {
+        position: relative;
+        z-index: 1;
+    }
+
+    .farmer-dashboard .metric-bg-icon {
+        z-index: 0;
+        pointer-events: none;
+        top: -0.5rem;
+        right: -0.5rem;
+        opacity: 0.12;
+    }
+
+    .farmer-dashboard .metric-bg-icon i {
+        font-size: 3.25rem;
+    }
+
+    .farmer-dashboard .min-w-0 {
+        min-width: 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 farmer-dashboard">
     <!-- Welcome Section -->
     <div class="farmer-profile mb-4 animate-on-scroll">
         <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">
@@ -67,23 +92,25 @@
         <div class="col-md-3 animate-on-scroll">
             <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #28a745, #20c997);">
                 <div class="card-body text-white position-relative overflow-hidden">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="metric-icon">
-                            <i class="fas fa-shopping-basket fa-2x"></i>
+                    <div class="metric-foreground">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div class="metric-icon">
+                                <i class="fas fa-shopping-basket fa-2x"></i>
+                            </div>
+                            <div class="text-end">
+                                <div class="metric-value counter" data-target="{{ stats.total_products }}" data-duration="2000">0</div>
+                                <div class="metric-label">Total Products</div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <div class="metric-value counter" data-target="{{ stats.total_products }}" data-duration="2000">0</div>
-                            <div class="metric-label">Total Products</div>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="opacity-75">{{ stats.active_products }} Active</small>
+                            <div class="progress" style="width: 60px; height: 4px;">
+                                <div class="progress-bar bg-white" style="width: {{ (stats.active_products / stats.total_products * 100) if stats.total_products > 0 else 0 }}%"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="opacity-75">{{ stats.active_products }} Active</small>
-                        <div class="progress" style="width: 60px; height: 4px;">
-                            <div class="progress-bar bg-white" style="width: {{ (stats.active_products / stats.total_products * 100) if stats.total_products > 0 else 0 }}%"></div>
-                        </div>
-                    </div>
-                    <div class="position-absolute top-0 end-0 opacity-10">
-                        <i class="fas fa-shopping-basket" style="font-size: 4rem;"></i>
+                    <div class="metric-bg-icon position-absolute">
+                        <i class="fas fa-shopping-basket"></i>
                     </div>
                 </div>
             </div>
@@ -92,23 +119,25 @@
         <div class="col-md-3 animate-on-scroll">
             <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                 <div class="card-body text-white position-relative overflow-hidden">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="metric-icon">
-                            <i class="fas fa-shopping-bag fa-2x"></i>
+                    <div class="metric-foreground">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div class="metric-icon">
+                                <i class="fas fa-shopping-bag fa-2x"></i>
+                            </div>
+                            <div class="text-end">
+                                <div class="metric-value counter" data-target="{{ stats.total_orders }}" data-duration="2000">0</div>
+                                <div class="metric-label">Total Orders</div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <div class="metric-value counter" data-target="{{ stats.total_orders }}" data-duration="2000">0</div>
-                            <div class="metric-label">Total Orders</div>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="opacity-75">{{ stats.pending_orders }} Pending</small>
+                            <span class="badge bg-warning">
+                                <i class="fas fa-clock"></i> {{ stats.pending_orders }}
+                            </span>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="opacity-75">{{ stats.pending_orders }} Pending</small>
-                        <span class="badge bg-warning">
-                            <i class="fas fa-clock"></i> {{ stats.pending_orders }}
-                        </span>
-                    </div>
-                    <div class="position-absolute top-0 end-0 opacity-10">
-                        <i class="fas fa-shopping-bag" style="font-size: 4rem;"></i>
+                    <div class="metric-bg-icon position-absolute">
+                        <i class="fas fa-shopping-bag"></i>
                     </div>
                 </div>
             </div>
@@ -117,23 +146,25 @@
         <div class="col-md-3 animate-on-scroll">
             <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
                 <div class="card-body text-white position-relative overflow-hidden">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="metric-icon">
-                            <i class="fas fa-rupee-sign fa-2x"></i>
+                    <div class="metric-foreground">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div class="metric-icon">
+                                <i class="fas fa-rupee-sign fa-2x"></i>
+                            </div>
+                            <div class="text-end">
+                                <div class="metric-value">{{ stats.total_earnings|rupee }}</div>
+                                <div class="metric-label">Total Earnings</div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <div class="metric-value">{{ stats.total_earnings|rupee }}</div>
-                            <div class="metric-label">Total Earnings</div>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="opacity-75">{{ stats.month_earnings|rupee }} This Month</small>
+                            <span class="badge bg-success">
+                                <i class="fas fa-arrow-up"></i> +12%
+                            </span>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="opacity-75">{{ stats.month_earnings|rupee }} This Month</small>
-                        <span class="badge bg-success">
-                            <i class="fas fa-arrow-up"></i> +12%
-                        </span>
-                    </div>
-                    <div class="position-absolute top-0 end-0 opacity-10">
-                        <i class="fas fa-rupee-sign" style="font-size: 4rem;"></i>
+                    <div class="metric-bg-icon position-absolute">
+                        <i class="fas fa-rupee-sign"></i>
                     </div>
                 </div>
             </div>
@@ -142,29 +173,31 @@
         <div class="col-md-3 animate-on-scroll">
             <div class="card dashboard-metric border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
                 <div class="card-body text-white position-relative overflow-hidden">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="metric-icon">
-                            <i class="fas fa-star fa-2x"></i>
+                    <div class="metric-foreground">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div class="metric-icon">
+                                <i class="fas fa-star fa-2x"></i>
+                            </div>
+                            <div class="text-end">
+                                <div class="metric-value">{{ "%.1f"|format(stats.avg_rating) if stats.avg_rating else 'N/A' }}</div>
+                                <div class="metric-label">Avg Rating</div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <div class="metric-value">{{ "%.1f"|format(stats.avg_rating) if stats.avg_rating else 'N/A' }}</div>
-                            <div class="metric-label">Avg Rating</div>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="opacity-75">{{ stats.total_reviews }} Reviews</small>
+                            <div class="d-flex">
+                                {% for i in range(5) %}
+                                    {% if stats.avg_rating and i < stats.avg_rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="opacity-75">{{ stats.total_reviews }} Reviews</small>
-                        <div class="d-flex">
-                            {% for i in range(5) %}
-                                {% if stats.avg_rating and i < stats.avg_rating %}
-                                    <i class="fas fa-star text-warning"></i>
-                                {% else %}
-                                    <i class="far fa-star text-warning"></i>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="position-absolute top-0 end-0 opacity-10">
-                        <i class="fas fa-star" style="font-size: 4rem;"></i>
+                    <div class="metric-bg-icon position-absolute">
+                        <i class="fas fa-star"></i>
                     </div>
                 </div>
             </div>
@@ -176,7 +209,7 @@
         <!-- Recent Orders -->
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Recent Orders</h5>
                     <a href="{{ url_for('farmer.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
@@ -185,13 +218,13 @@
                     <div class="list-group list-group-flush">
                         {% for order in recent_orders %}
                         <div class="list-group-item px-0">
-                            <div class="d-flex justify-content-between">
-                                <div>
+                            <div class="d-flex justify-content-between flex-wrap gap-2">
+                                <div class="min-w-0">
                                     <h6 class="mb-1">Order #{{ order.order_number }}</h6>
                                     <p class="mb-1 text-muted">{{ order.consumer_name }}</p>
                                     <small class="text-muted">{{ order.created_at|date_format }}</small>
                                 </div>
-                                <div class="text-end">
+                                <div class="text-end ms-auto">
                                     <h6 class="text-success">{{ order.farmer_total|rupee }}</h6>
                                     <span class="badge bg-{{ 'success' if order.status == 'delivered' else 'primary' }}">
                                         {{ order.status.title() }}
@@ -219,7 +252,7 @@
         <!-- Top Selling Products -->
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-trophy"></i> Top Selling Products</h5>
                     <a href="{{ url_for('farmer.products') }}" class="btn btn-sm btn-outline-success">View All</a>
                 </div>
@@ -228,8 +261,8 @@
                     <div class="list-group list-group-flush">
                         {% for product in top_products %}
                         <div class="list-group-item px-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex align-items-center flex-grow-1 min-w-0">
                                     {% if product.image %}
                                     <img src="{{ url_for('static', filename=product.image) }}" 
                                          class="rounded" width="40" height="40" alt="{{ product.name }}">
@@ -239,12 +272,12 @@
                                         <i class="fas fa-image text-muted"></i>
                                     </div>
                                     {% endif %}
-                                    <div class="ms-3">
+                                    <div class="ms-3 min-w-0">
                                         <h6 class="mb-0">{{ product.name }}</h6>
                                         <small class="text-muted">{{ product.price|rupee }}/{{ product.unit }}</small>
                                     </div>
                                 </div>
-                                <div class="text-end">
+                                <div class="text-end ms-auto">
                                     <span class="badge bg-success">{{ product.total_sold or 0 }} sold</span>
                                 </div>
                             </div>
@@ -272,12 +305,12 @@
                     <div class="list-group list-group-flush">
                         {% for item in inventory_status %}
                         <div class="list-group-item px-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="min-w-0">
                                     <h6 class="mb-1">{{ item.name }}</h6>
                                     <small class="text-muted">{{ item.category }}</small>
                                 </div>
-                                <div>
+                                <div class="ms-auto">
                                     {% if item.quantity == 0 %}
                                     <span class="badge bg-danger">Out of Stock</span>
                                     {% elif item.quantity < 10 %}
@@ -347,11 +380,6 @@
                                 {% if stats.out_of_stock > 0 %}
                                 <span class="badge bg-light text-dark ms-2">{{ stats.out_of_stock }}</span>
                                 {% endif %}
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="#" class="btn btn-info w-100" onclick="alert('Analytics feature coming soon!')">
-                                <i class="fas fa-chart-line"></i> View Analytics
                             </a>
                         </div>
                     </div>
